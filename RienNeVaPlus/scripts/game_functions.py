@@ -1,5 +1,34 @@
 import possible_bets as pb
 import random
+import pygame
+import sys
+
+
+def update_screen(screen, *args, **kwargs):
+    settings = kwargs["settings"]
+    screen.blit(settings.bg_surf, settings.bg_rect)
+
+    kwargs["board"].blitme()
+
+    pygame.display.flip()
+
+
+def check_events(*args, **kwargs):
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            sys.exit()
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            check_mouse_down_events(event)
+        elif event.type == pygame.MOUSEBUTTONUP:
+            check_mouse_up_events(event)
+
+
+def check_mouse_down_events(event, *args, **kwargs):
+    pass
+
+
+def check_mouse_up_events(event, *args, **kwargs):
+    pass
 
 
 def ask_budget(budget=None):

@@ -1,8 +1,29 @@
+import pygame
 import game_functions as gf
+from settings import Settings
+from elements import Play_field
 
 
 def run():
-    # Runs the program
+    pygame.init()
+    settings = Settings()
+    screen = pygame.display.set_mode((1200, 800))
+    pygame.display.set_caption("Rien Ne Va Plus")
+
+    active = True
+    clockobject = pygame.time.Clock()
+
+    all_sprites = pygame.sprite.Group()
+    board = Play_field(screen=screen, settings=settings)
+    for new_field in board.single_field_list:
+        all_sprites.add(new_field)
+
+    while active:
+        clockobject.tick(60)
+        gf.check_events(screen, settings)
+        gf.update_screen(screen, settings=settings, board=board)
+
+    """# Runs the program
     budget = gf.ask_budget()
     spin = False
     bet_list = []
@@ -20,7 +41,7 @@ def run():
         for bet_multiplier in bet_multiplier_list:
             budget += bet_value * bet_multiplier
     print(budget)
-    spin = False
+    spin = False"""
 
 
 run()
