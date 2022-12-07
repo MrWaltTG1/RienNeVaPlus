@@ -9,6 +9,8 @@ def update_screen(screen, *args, **kwargs):
     screen.blit(settings.bg_surf, settings.bg_rect)
 
     kwargs["board"].blitme()
+    if settings.debug:
+        kwargs["board"].blit_hitboxes()
 
     pygame.display.flip()
 
@@ -127,3 +129,40 @@ def wheel_math(spinned_number, bet_list):
         else:
             bet_values.append(0)
     return bet_values
+
+
+def create_hitboxes(obj, center_only=False):
+    # Create corner hitboxes
+    hitbox_rect_list = []
+    if not center_only:
+        # Create corner hitboxes
+        hitbox_pos_list_corners = [obj.rect.topleft, obj.rect.topright,
+                                   obj.rect.bottomleft, obj.rect.bottomright,
+                                   obj.rect.midtop, obj.rect.midbottom,
+                                   obj.rect.midleft, obj.rect.midright]
+
+        size = obj.rect.size[0] / 2, obj.rect.size[1] / 2
+        for pos in hitbox_pos_list_corners:
+            if pos == obj.rect.midtop:
+                size = obj.rect.size[0] / 3, obj.rect.size[1] / 3
+            new_rect = pygame.rect.Rect(pos, size)
+            new_rect.center = pos
+            hitbox_rect_list.append(new_rect)
+
+    # Create center hitbox
+    new_rect = pygame.rect.Rect(obj.rect.center, obj.rect.size)
+    new_rect.center = obj.rect.center
+    hitbox_rect_list.append(new_rect)
+    return hitbox_rect_list
+
+
+def create_text(obj, msg, font_size, rotate=False):
+    """Create text inside the box"""
+    font = pygame.font.SysFont("Ariel", font_size)
+    msg_image = font.render(msg, True, (255, 255, 255))
+    msg_image_rect = msg_image.get_rect()
+    if rotate:
+        msg_image = pygame.transform.rotate(msg_image, 90)
+    msg_image_rect.center = obj.rect.center
+
+    return msg_image, msg_image_rect

@@ -13,10 +13,7 @@ def run():
     active = True
     clockobject = pygame.time.Clock()
 
-    all_sprites = pygame.sprite.Group()
     board = Play_field(screen=screen, settings=settings)
-    for new_field in board.single_field_list:
-        all_sprites.add(new_field)
 
     while active:
         clockobject.tick(60)
