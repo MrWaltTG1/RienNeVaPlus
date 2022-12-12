@@ -1,4 +1,5 @@
 import possible_bets as pb
+from play_table import Block
 import random
 import pygame
 import sys
@@ -9,6 +10,7 @@ def update_screen(screen, *args, **kwargs):
     screen.blit(settings.bg_surf, settings.bg_rect)
 
     kwargs["board"].blitme()
+
     if settings.debug:
         kwargs["board"].blit_hitboxes()
 
@@ -131,38 +133,85 @@ def wheel_math(spinned_number, bet_list):
     return bet_values
 
 
-def create_hitboxes(obj, center_only=False):
-    # Create corner hitboxes
-    hitbox_rect_list = []
-    if not center_only:
-        # Create corner hitboxes
-        hitbox_pos_list_corners = [obj.rect.topleft, obj.rect.topright,
-                                   obj.rect.bottomleft, obj.rect.bottomright,
-                                   obj.rect.midtop, obj.rect.midbottom,
-                                   obj.rect.midleft, obj.rect.midright]
-
-        size = obj.rect.size[0] / 2, obj.rect.size[1] / 2
-        for pos in hitbox_pos_list_corners:
-            if pos == obj.rect.midtop:
-                size = obj.rect.size[0] / 3, obj.rect.size[1] / 3
-            new_rect = pygame.rect.Rect(pos, size)
-            new_rect.center = pos
-            hitbox_rect_list.append(new_rect)
-
-    # Create center hitbox
-    new_rect = pygame.rect.Rect(obj.rect.center, obj.rect.size)
-    new_rect.center = obj.rect.center
-    hitbox_rect_list.append(new_rect)
-    return hitbox_rect_list
-
-
-def create_text(obj, msg, font_size, rotate=False):
+def create_text(obj: object, msg: str, font_size: int, rotate=False):
     """Create text inside the box"""
     font = pygame.font.SysFont("Ariel", font_size)
     msg_image = font.render(msg, True, (255, 255, 255))
     msg_image_rect = msg_image.get_rect()
     if rotate:
         msg_image = pygame.transform.rotate(msg_image, 90)
-    msg_image_rect.center = obj.rect.center
+    msg_image_rect.center = obj.rect.center  # type: ignore
+
+    if len(msg) == 1:
+        msg_image_rect.centery += 7
+        msg_image_rect.centerx -= 2
 
     return msg_image, msg_image_rect
+
+
+def create_hitboxes(obj, center_only=False):
+    # Create corner hitboxes
+    hitbox_rect_dict = {}
+    if not center_only:
+        # Create corner hitboxes
+        hitbox_pos_list_corners = [obj.rect.topleft, obj.rect.topright,
+                                   obj.rect.bottomleft, obj.rect.bottomright,
+                                   obj.rect.midtop, obj.rect.midbottom,
+                                   obj.rect.midleft, obj.rect.midright]
+        dict_text_list = ["topleft", "topright", "bottomleft", "bottomright",
+                          "centertop", "centerbottom", "centerleft", "centerright"]
+        size = obj.rect.size[0] / 2, obj.rect.size[1] / 2
+        for pos, text in zip(hitbox_pos_list_corners, dict_text_list):
+            new_rect = pygame.rect.Rect(pos, size)
+            new_rect.center = pos
+            hitbox_rect_dict[text] = new_rect
+
+    # Create center hitbox
+    new_rect = pygame.rect.Rect(obj.rect.center, obj.rect.size)
+    new_rect.center = obj.rect.center
+    hitbox_rect_dict[0] = new_rect
+    return hitbox_rect_dict
+
+
+def check_hitbox_mouse_collision(hitbox: pygame.Rect):
+    x, y = pygame.mouse.get_pos()
+    if pygame.Rect.collidepoint(hitbox, x, y):
+        return True
+    else:
+        return False
+
+
+def give_hovered_fields(all_fields: list, all_hitboxes: dict):
+    hitbox_list, field_list = [], []
+    for key, hitbox_dict in all_hitboxes.items():
+        for hitbox in hitbox_dict.values():
+            if check_hitbox_mouse_collision(hitbox):
+                hitbox_list.append(hitbox)
+
+    field_dict = {}
+    for hitbox in hitbox_list:
+        for field in all_fields:
+            if pygame.Rect.colliderect(hitbox, field.rect):
+                field_dict[field.msg] = field
+
+    for key, value in field_dict.items():
+        if len(field_dict) == 1:
+            msg_list = ["MANQUE 1-18", "IMPAIR",
+                    "ROUGE", "PASSE 19-36", "PAIR", "NOIR"]
+            for msg in msg_list:
+                if key == msg:
+                    # SKJOGHSDLKJ
+            
+
+    # print(field_dict)
+
+    return field_list
+
+
+def make_field_glow(screen: pygame.Surface, field):
+    if hasattr(field, "points"):
+        pygame.draw.polygon(
+            screen, (219, 207, 37), field.points, width=5)
+    else:
+        pygame.draw.rect(
+            screen, (219, 207, 37), field.rect, width=5)
