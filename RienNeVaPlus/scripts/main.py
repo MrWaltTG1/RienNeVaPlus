@@ -1,24 +1,26 @@
 import pygame
 import game_functions as gf
 from settings import Settings
-from elements import Play_field
+from play_screen import Play_screen
 
 
 def run():
     pygame.init()
     settings = Settings()
-    screen = pygame.display.set_mode((1200, 800))
+    screen = pygame.display.set_mode((1000, 800))
     pygame.display.set_caption("Rien Ne Va Plus")
 
     active = True
     clockobject = pygame.time.Clock()
-
-    board = Play_field(screen=screen, settings=settings)
+    play_screen = Play_screen(screen=screen, settings=settings)
 
     while active:
+        board = play_screen.board
         clockobject.tick(60)
+        play_screen.update()
         gf.check_events(screen, settings)
-        gf.update_screen(screen, settings=settings, board=board)
+        gf.update_screen(screen, settings=settings,
+                         board=board, play_screen=play_screen)
 
     """# Runs the program
     budget = gf.ask_budget()

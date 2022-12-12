@@ -8,11 +8,14 @@ import sys
 def update_screen(screen, *args, **kwargs):
     settings = kwargs["settings"]
     screen.blit(settings.bg_surf, settings.bg_rect)
+    if kwargs["board"]:
+        kwargs["board"].blitme()
 
-    kwargs["board"].blitme()
+        if settings.debug:
+            kwargs["board"].blit_hitboxes()
+    if kwargs["play_screen"]:
+        kwargs["play_screen"].blitme()
 
-    if settings.debug:
-        kwargs["board"].blit_hitboxes()
 
     pygame.display.flip()
 
@@ -182,7 +185,7 @@ def check_hitbox_mouse_collision(hitbox: pygame.Rect):
 
 
 def give_hovered_fields(all_fields: list, all_hitboxes: dict):
-    hitbox_list, field_list = [], []
+    hitbox_list, field_list, field_number_list = [], [], []
     for key, hitbox_dict in all_hitboxes.items():
         for hitbox in hitbox_dict.values():
             if check_hitbox_mouse_collision(hitbox):
@@ -194,14 +197,66 @@ def give_hovered_fields(all_fields: list, all_hitboxes: dict):
             if pygame.Rect.colliderect(hitbox, field.rect):
                 field_dict[field.msg] = field
 
-    for key, value in field_dict.items():
-        if len(field_dict) == 1:
+    if len(field_dict) == 1:
+        msg = list(field_dict.keys())[0]
+        if msg.isdigit():
+            for value in field_dict.values():
+                field_list.append(value)
+        elif msg == "column1":
+            field_number_list = pb.colonne1
+        elif msg == "column2":
+            field_number_list = pb.colonne2
+        elif msg == "column3":
+            field_number_list = pb.colonne3
+        elif msg == "MANQUE 1-18":
+            field_number_list = pb.manque
+        elif msg == "IMPAIR":
+            field_number_list = pb.impair
+        elif msg == "ROUGE":
+            field_number_list = pb.rouge
+        elif msg == "PASSE 19-36":
+            field_number_list = pb.passe
+        elif msg == "PAIR":
+            field_number_list = pb.pair
+        elif msg == "NOIR":
+            field_number_list = pb.noir
+        elif msg == "P12":
+            field_number_list = pb.premiere
+        elif msg == "M12":
+            field_number_list = pb.moyenne
+        elif msg == "D12":
+            field_number_list = pb.derniere
+
+    elif len(field_dict) > 1:
+        if list(field_dict.keys())[-1].isdigit():
+            for value in field_dict.values():
+                field_list.append(value)
+        else:
+            msg = list(field_dict.keys())[-1]
             msg_list = ["MANQUE 1-18", "IMPAIR",
-                    "ROUGE", "PASSE 19-36", "PAIR", "NOIR"]
-            for msg in msg_list:
-                if key == msg:
-                    # SKJOGHSDLKJ
-            
+                        "ROUGE", "PASSE 19-36", "PAIR", "NOIR"]
+            if msg in msg_list:
+                # MANQUE
+                if msg in msg_list[0:3]:
+                    if len(field_dict) == 2:
+                        field_number_list = pb.transversale_pleine(
+                            int(list(field_dict.keys())[0])-2)
+                    else:
+                        field_number_list = pb.transversale_simple(
+                            int(list(field_dict.keys())[0])-2)
+                else:
+                    if len(field_dict) == 2:
+                        field_number_list = pb.transversale_pleine(
+                            int(list(field_dict.keys())[0]))
+                    else:
+                        field_number_list = pb.transversale_simple(
+                            int(list(field_dict.keys())[0]))
+
+    if field_number_list:
+        for field in all_fields:
+            if field.msg.isdigit():
+                if int(field.msg) in field_number_list:
+                    field_list.append(field)
 
     # print(field_dict)
 
