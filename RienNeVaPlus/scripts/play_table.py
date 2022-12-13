@@ -195,7 +195,7 @@ class Single_field(pygame.sprite.Sprite):
             font_size = 30
             self.hitbox_rect_dict = gf.create_hitboxes(self)
             self.msg_image, self.msg_image_rect = gf.create_text(
-                self, self.msg, font_size, rotate=True)
+                self.rect.center, self.msg, font_size, rotate=True)
         else:
             self.msg = kwargs["number"]
             self.hitbox_rect_dict = gf.create_hitboxes(self, center_only=True)
@@ -245,7 +245,7 @@ class Block():
 
         # Create text
         self.msg_image, self.msg_image_rect = gf.create_text(
-            self, self.msg, font_size=20)
+            self.rect.center, self.msg, font_size=20)
 
         # Create hitboxes
         self.hitbox_rect_dict = gf.create_hitboxes(self, center_only=True)
@@ -274,7 +274,7 @@ class Thirds_field():
         # Create text
         self.msg = msg
         self.msg_image, self.msg_image_rect = gf.create_text(
-            self, self.msg, font_size=20)
+            self.rect.center, self.msg, font_size=20)
         self.hitbox_rect_dict = gf.create_hitboxes(self, center_only=True)
 
     def blitme(self, screen):
@@ -302,7 +302,7 @@ class Field_zero():
         self.msg = "0"
         self.hitbox_rect_dict = gf.create_hitboxes(self, center_only=True)
         self.msg_image, self.msg_image_rect = gf.create_text(
-            self, self.msg, 60, True)
+            self.rect.center, self.msg, 60, True)
 
     def blitme(self, screen):
         pygame.draw.polygon(screen, (0, 150, 0), self.points)

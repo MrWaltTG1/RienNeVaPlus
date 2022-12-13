@@ -1,5 +1,4 @@
 import possible_bets as pb
-from play_table import Block
 import random
 import pygame
 import sys
@@ -16,7 +15,6 @@ def update_screen(screen, *args, **kwargs):
     if kwargs["play_screen"]:
         kwargs["play_screen"].blitme()
 
-
     pygame.display.flip()
 
 
@@ -28,6 +26,12 @@ def check_events(*args, **kwargs):
             check_mouse_down_events(event)
         elif event.type == pygame.MOUSEBUTTONUP:
             check_mouse_up_events(event)
+        elif event.type == pygame.KEYDOWN:
+            check_key_down_events(event)
+
+
+def check_key_down_events(event):
+    pass
 
 
 def check_mouse_down_events(event, *args, **kwargs):
@@ -136,14 +140,14 @@ def wheel_math(spinned_number, bet_list):
     return bet_values
 
 
-def create_text(obj: object, msg: str, font_size: int, rotate=False):
+def create_text(pos, msg: str, font_size: int, rotate=False):
     """Create text inside the box"""
     font = pygame.font.SysFont("Ariel", font_size)
     msg_image = font.render(msg, True, (255, 255, 255))
     msg_image_rect = msg_image.get_rect()
     if rotate:
         msg_image = pygame.transform.rotate(msg_image, 90)
-    msg_image_rect.center = obj.rect.center  # type: ignore
+    msg_image_rect.center = pos  # type: ignore
 
     if len(msg) == 1:
         msg_image_rect.centery += 7
@@ -162,7 +166,8 @@ def create_hitboxes(obj, center_only=False):
                                    obj.rect.midtop, obj.rect.midbottom,
                                    obj.rect.midleft, obj.rect.midright]
         dict_text_list = ["topleft", "topright", "bottomleft", "bottomright",
-                          "centertop", "centerbottom", "centerleft", "centerright"]
+                          "centertop", "centerbottom",
+                          "centerleft", "centerright"]
         size = obj.rect.size[0] / 2, obj.rect.size[1] / 2
         for pos, text in zip(hitbox_pos_list_corners, dict_text_list):
             new_rect = pygame.rect.Rect(pos, size)

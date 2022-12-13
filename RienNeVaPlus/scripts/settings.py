@@ -3,7 +3,7 @@ import pygame
 
 class Settings():
     def __init__(self) -> None:
-        self.debug = True
+        self.debug = False
 
         self.screen_size = [1000, 800]
         self.field_x, self.field_y = 100, 100

@@ -38,27 +38,35 @@ class Button():
 
 class Pop_up():
 
-    def __init__(self, settings, msg: str, pos, size) -> None:
+    def __init__(self, settings, pos, size) -> None:
         self.settings = settings
         self.rect = pygame.Rect((0, 0), size)
         self.rect.center = pos
+        self.msg_image_list = []
 
-        self.prep_msg(msg)
-        self.msg_image_rect.center = self.rect.center
-
-    def prep_msg(self, msg: str, font_color = None):
+    def prep_msg(self, msg: str, font_color=None, font_size=None, pos=(0, 0)):
+        """Add text to the box"""
         if not font_color:
             font_color = self.settings.font_color
+        if not font_size:
+            font_size = self.settings.font_size
         font_type = self.settings.font_type
-        font_size = self.settings.font_size
         font = pygame.font.SysFont(font_type, font_size)
-        self.msg_image = font.render(msg, True, font_color)
-        self.msg_image_rect = self.msg_image.get_rect()
+
+        msg_image = font.render(msg, True, font_color)
+        msg_image_rect = msg_image.get_rect()
+        if pos == (0, 0):
+            msg_image_rect.center = self.rect.center
+        else:
+            msg_image_rect.topleft = self.rect.left + \
+                pos[0], self.rect.top + pos[1]
+        self.msg_image_list.append((msg_image, msg_image_rect))
 
     def blitme(self, screen):
         # Get right color
-        color = self.settings.pop_up_bg_color
+        self.color = self.settings.pop_up_bg_color
 
         # Draw the box and the text
-        pygame.draw.rect(screen, color, self.rect)
-        screen.blit(self.msg_image, self.msg_image_rect)
+        pygame.draw.rect(screen, self.color, self.rect)
+        for msg_image, msg_image_rect in self.msg_image_list:
+            screen.blit(msg_image, msg_image_rect)
