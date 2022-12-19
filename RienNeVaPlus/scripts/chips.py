@@ -8,7 +8,8 @@ class Chip(pygame.sprite.Sprite):
         # Create an image of the block, and fill it with a color.
         # This could also be an image loaded from the disk.
         self.original_image = pygame.image.load("RienNeVaPlus/images/chip.bmp")
-        self.image = pygame.transform.smoothscale(self.original_image, (40,40))
+        self.size = [40, 40]
+        self.image = pygame.transform.smoothscale(self.original_image, self.size)
         if self.color:
             self.image.fill(self.color, special_flags=pygame.BLEND_MAX)
 

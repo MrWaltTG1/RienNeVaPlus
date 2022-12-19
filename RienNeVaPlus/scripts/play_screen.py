@@ -22,12 +22,12 @@ class Play_screen():
         i = 0
         color_list = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
         for x in range(x_start, x_stop, 40):
-            y = self.board.play_table_rect.bottom
+            y = self.board.play_table_rect.bottom + 50
             if i >= len(color_list):
                 i = 0
             color = color_list[i]
             new_chip = Chip(color=color)
-            new_chip.rect.topleft = (x, y)
+            new_chip.rect.center = (x, y)
             self.chip_group.add(new_chip)
             i += 1
 
@@ -38,11 +38,13 @@ class Play_screen():
                 self.create_pop_up()
                 self.button_list.remove(button)
         for chip in self.chip_group:
-            if pygame.Rect.collidepoint(chip.rect, x,y):
-                chip.image = pygame.transform.scale(chip.original_image, (80,80))
+            if pygame.Rect.collidepoint(chip.rect, x, y):
+                chip.image = pygame.transform.scale(
+                    chip.original_image, (chip.size[0]*2, chip.size[1]*2))
                 chip.image.fill(chip.color, special_flags=pygame.BLEND_MAX)
             else:
-                chip.image = pygame.transform.scale(chip.original_image, (40,40))
+                chip.image = pygame.transform.scale(
+                    chip.original_image, chip.size)
                 chip.image.fill(chip.color, special_flags=pygame.BLEND_MAX)
 
         if self.board:
