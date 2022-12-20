@@ -18,7 +18,7 @@ def run():
         board = play_screen.board
         clockobject.tick(60)
         play_screen.update()
-        gf.check_events(screen, settings)
+        gf.check_events(screen, settings, play_screen)
         gf.update_screen(screen, settings=settings,
                          board=board, play_screen=play_screen)
 

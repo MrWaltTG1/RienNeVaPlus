@@ -1,7 +1,11 @@
-import possible_bets as pb
 import random
-import pygame
 import sys
+
+import possible_bets as pb
+from chips import Chip
+from settings import Settings
+
+import pygame
 
 
 def update_screen(screen, *args, **kwargs):
@@ -18,12 +22,13 @@ def update_screen(screen, *args, **kwargs):
     pygame.display.flip()
 
 
-def check_events(*args, **kwargs):
+def check_events(screen, settings, play_screen):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            check_mouse_down_events(event)
+            check_mouse_down_events(event, screen, settings, play_screen)
+
         elif event.type == pygame.MOUSEBUTTONUP:
             check_mouse_up_events(event)
         elif event.type == pygame.KEYDOWN:
@@ -34,11 +39,20 @@ def check_key_down_events(event):
     pass
 
 
-def check_mouse_down_events(event, *args, **kwargs):
-    pass
+def check_mouse_down_events(event, screen, settings, play_screen):
+    x, y = event.pos
+
+    if event.button == 1:
+        if play_screen.chip_group_temp:
+            play_screen.chip_group_temp.empty()
+
+        for chip in play_screen.chip_group:
+            if chip.rect.collidepoint(x, y):
+                new_chip = Chip(color=chip.color)
+                play_screen.chip_group_temp.add(new_chip)
 
 
-def check_mouse_up_events(event, *args, **kwargs):
+def check_mouse_up_events(event):
     pass
 
 
@@ -275,3 +289,19 @@ def make_field_glow(screen: pygame.Surface, field):
     else:
         pygame.draw.rect(
             screen, (219, 207, 37), field.rect, width=5)
+
+
+def create_info_field(pos, size, msg):
+    start_rect = pygame.Rect(pos, (0, 0))
+    end_rect = pygame.Rect(pos, size)
+    msg_surf, msg_rect = create_text(end_rect.center, msg, 30)
+    field_list = [start_rect,end_rect, [msg_surf, msg_rect]]
+    
+    return field_list
+
+def update_info_field(field_list):
+    if field_list[0].rect.center == field_list[1].rect.center:
+        return False
+    else:
+        field_list[0].inflate(2, 2)
+        return True
