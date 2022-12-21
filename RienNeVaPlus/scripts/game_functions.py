@@ -23,7 +23,7 @@ def update_screen(screen, *args, **kwargs):
 
 
 def check_events(screen, settings, play_screen):
-    for event in pygame.event.get():
+    for event in pygame.event.get(exclude=pygame.KEYDOWN):
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -44,12 +44,28 @@ def check_mouse_down_events(event, screen, settings, play_screen):
 
     if event.button == 1:
         if play_screen.chip_group_temp:
-            play_screen.chip_group_temp.empty()
+            reset_chip = True
+            for hitbox_dict in play_screen.board.all_hitbox_rects_dict.values():
+                for hitbox in hitbox_dict.values():
+                    if check_hitbox_mouse_collision(hitbox):
+                        new_chip = Chip(play_screen.chip_group_placed,
+                                        color=play_screen.chip_group_temp.sprites()[-1].color,
+                                        resize_multiplier=0.5)
+                        new_chip.reposition(hitbox.centerx, hitbox.centery)
+                        reset_chip = False
+                        break
+            if reset_chip:
+                play_screen.chip_group_temp.empty()
 
         for chip in play_screen.chip_group:
             if chip.rect.collidepoint(x, y):
                 new_chip = Chip(color=chip.color)
                 play_screen.chip_group_temp.add(new_chip)
+
+        for button in play_screen.button_list:
+            if button.rect.collidepoint(x, y):
+                play_screen.create_budget_pop_up()
+                play_screen.button_list.remove(button)
 
 
 def check_mouse_up_events(event):
@@ -154,10 +170,10 @@ def wheel_math(spinned_number, bet_list):
     return bet_values
 
 
-def create_text(pos, msg: str, font_size: int, rotate=False):
+def create_text(pos, msg: str, font_size: int, rotate=False, font_color=(255, 255, 255)):
     """Create text inside the box"""
     font = pygame.font.SysFont("Ariel", font_size)
-    msg_image = font.render(msg, True, (255, 255, 255))
+    msg_image = font.render(msg, True, font_color)
     msg_image_rect = msg_image.get_rect()
     if rotate:
         msg_image = pygame.transform.rotate(msg_image, 90)
@@ -205,7 +221,7 @@ def check_hitbox_mouse_collision(hitbox: pygame.Rect):
 
 def give_hovered_fields(all_fields: list, all_hitboxes: dict):
     hitbox_list, field_list, field_number_list = [], [], []
-    for key, hitbox_dict in all_hitboxes.items():
+    for hitbox_dict in all_hitboxes.values():
         for hitbox in hitbox_dict.values():
             if check_hitbox_mouse_collision(hitbox):
                 hitbox_list.append(hitbox)
@@ -215,36 +231,28 @@ def give_hovered_fields(all_fields: list, all_hitboxes: dict):
         for field in all_fields:
             if pygame.Rect.colliderect(hitbox, field.rect):
                 field_dict[field.msg] = field
+    dict = {
+        "column1": pb.colonne1,
+        "column2": pb.colonne2,
+        "column3": pb.colonne3,
+        "MANQUE 1-18": pb.manque,
+        "IMPAIR": pb.impair,
+        "ROUGE": pb.rouge,
+        "PASSE 19-36": pb.passe,
+        "PAIR": pb.pair,
+        "NOIR": pb.noir,
+        "P12": pb.premiere,
+        "M12": pb.moyenne,
+        "D12": pb.derniere
+    }
 
     if len(field_dict) == 1:
         msg = list(field_dict.keys())[0]
         if msg.isdigit():
             for value in field_dict.values():
                 field_list.append(value)
-        elif msg == "column1":
-            field_number_list = pb.colonne1
-        elif msg == "column2":
-            field_number_list = pb.colonne2
-        elif msg == "column3":
-            field_number_list = pb.colonne3
-        elif msg == "MANQUE 1-18":
-            field_number_list = pb.manque
-        elif msg == "IMPAIR":
-            field_number_list = pb.impair
-        elif msg == "ROUGE":
-            field_number_list = pb.rouge
-        elif msg == "PASSE 19-36":
-            field_number_list = pb.passe
-        elif msg == "PAIR":
-            field_number_list = pb.pair
-        elif msg == "NOIR":
-            field_number_list = pb.noir
-        elif msg == "P12":
-            field_number_list = pb.premiere
-        elif msg == "M12":
-            field_number_list = pb.moyenne
-        elif msg == "D12":
-            field_number_list = pb.derniere
+        else:
+            field_number_list = dict[msg]
 
     elif len(field_dict) > 1:
         if list(field_dict.keys())[-1].isdigit():
@@ -255,7 +263,7 @@ def give_hovered_fields(all_fields: list, all_hitboxes: dict):
             msg_list = ["MANQUE 1-18", "IMPAIR",
                         "ROUGE", "PASSE 19-36", "PAIR", "NOIR"]
             if msg in msg_list:
-                # MANQUE
+                # TOP ROW
                 if msg in msg_list[0:3]:
                     if len(field_dict) == 2:
                         field_number_list = pb.transversale_pleine(
@@ -263,6 +271,7 @@ def give_hovered_fields(all_fields: list, all_hitboxes: dict):
                     else:
                         field_number_list = pb.transversale_simple(
                             int(list(field_dict.keys())[0])-2)
+                # BOTTOM ROW
                 else:
                     if len(field_dict) == 2:
                         field_number_list = pb.transversale_pleine(
@@ -277,8 +286,6 @@ def give_hovered_fields(all_fields: list, all_hitboxes: dict):
                 if int(field.msg) in field_number_list:
                     field_list.append(field)
 
-    # print(field_dict)
-
     return field_list
 
 
@@ -291,17 +298,57 @@ def make_field_glow(screen: pygame.Surface, field):
             screen, (219, 207, 37), field.rect, width=5)
 
 
-def create_info_field(pos, size, msg):
-    start_rect = pygame.Rect(pos, (0, 0))
-    end_rect = pygame.Rect(pos, size)
-    msg_surf, msg_rect = create_text(end_rect.center, msg, 30)
-    field_list = [start_rect,end_rect, [msg_surf, msg_rect]]
-    
+def create_info_field(pos, size: int, msg):
+    start_rect = pygame.Rect(pos, (size, size))
+    end_rect = pygame.Rect(pos, (size*2, size))
+    msg_surf, msg_rect = create_text(
+        end_rect.center, msg, 30, font_color=(0, 0, 0))
+    msg_surf.set_alpha(10)
+    field_list = [start_rect, end_rect, [msg_surf, msg_rect]]
+
     return field_list
 
+
 def update_info_field(field_list):
-    if field_list[0].rect.center == field_list[1].rect.center:
-        return False
-    else:
-        field_list[0].inflate(2, 2)
-        return True
+    """Function to update the info field"""
+
+    x, y = 0, 0
+    if not field_list[0].bottom > field_list[1].bottom:
+        y = 4
+    if not field_list[0].right > field_list[1].right:
+        x = 4
+
+    # Resize the info field
+    field_list[0] = field_list[0].inflate(x, y)
+    # Align the field top left
+    field_list[0].topleft = field_list[1].topleft
+
+    # Align the text on the right side
+    field_list[2][1].right = field_list[0].right
+    # Increase the text transparency
+    alpha = field_list[2][0].get_alpha()
+    field_list[2][0].set_alpha(alpha + 10)
+
+    return field_list
+
+def check_chip_overlap(chip_group: pygame.sprite.Group):
+    """Checks if chips overlap in the given group"""
+    chip_list = chip_group.sprites()
+    for chip1 in chip_list:
+        for chip2 in chip_list:
+            if chip1 == chip2:
+                continue
+            else:
+                if chip1.color == chip2.color:
+                    if chip1.rect.center == chip2.rect.center:
+                        chip2.rect.centerx += 2
+                        chip2.rect.centery -= 2
+                        break
+                else:
+                    if chip1.rect.center == chip2.rect.center:
+                        i = random.randint(1, 2)
+                        if i == 1:
+                            chip2.rect.centerx += chip2.rect.width
+                        else:
+                            chip2.rect.centerx -= chip2.rect.width
+                        break

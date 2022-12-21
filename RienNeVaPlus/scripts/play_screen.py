@@ -13,8 +13,10 @@ class Play_screen():
 
         self.screen, self.settings = screen, settings
         self.button_list, self.pop_up_list, self.text_list = [], [], []
-        self.board, self.budget, self.do_update_budget = None, None, None
-        self.info_field = []
+        self.board = None
+        self.budget, self.new_budget, self.do_update_budget_text = None, None, None
+        self.chip_hovered = None
+        self.info_field_list = []
 
         self.chip_group = pygame.sprite.Group()
         self.chip_group_temp = pygame.sprite.Group()
@@ -53,31 +55,35 @@ class Play_screen():
         """Function to update the board"""
 
         x, y = pygame.mouse.get_pos()
-        for button in self.button_list:
-            if button.rect.collidepoint(x, y):
-                self.create_pop_up()
-                self.button_list.remove(button)
 
         """For loop to update chips"""
         for chip in self.chip_group:
             if pygame.Rect.collidepoint(chip.rect, x, y):
-                chip.image = pygame.transform.scale(
-                    chip.original_image, (chip.size[0]*1.5, chip.size[1]*1.5))
-                chip.image.fill(chip.color, special_flags=pygame.BLEND_MAX)
-                if not self.info_field:
-                    fields_list = gf.create_info_field(chip.rect.topleft, (100,40), "TEST BOX")
-                    self.info_field.append(fields_list)
-                else:
-                    gf.update_info_field(self.info_field)
+                if not self.chip_hovered:
+                    self.chip_hovered = Chip(
+                        color=chip.color, resize_multiplier=1.5)
+                    self.chip_hovered.rect.center = chip.rect.center
+                break
             else:
-                chip.image = pygame.transform.scale(
-                    chip.original_image, chip.size)
-                chip.image.fill(chip.color, special_flags=pygame.BLEND_MAX)
-                if self.info_field:
-                    self.info_field.pop()
+                self.chip_hovered = None
+
+        if self.chip_hovered:
+            if not self.info_field_list:
+                key = [k for k, v in self.settings.chip_color_dict.items()
+                       if v == self.chip_hovered.color]
+                price = self.settings.chip_price_dict[key[0]]
+                msg = "€" + "{:,}".format(price)
+                fields_list = gf.create_info_field(
+                    self.chip_hovered.rect.topleft,  60, msg)
+                self.info_field_list.append(fields_list)
+            else:
+                for fields in self.info_field_list:
+                    fields = gf.update_info_field(fields)
+        elif self.info_field_list:
+            self.info_field_list.pop()
 
         for chip in self.chip_group_temp:
-            chip.rect.center = (x, y)
+            chip.reposition(x, y)
 
         if self.board:
             self.board.update()
@@ -85,16 +91,23 @@ class Play_screen():
         if self.pop_up_list[0:]:
             self.update_budget_pop_up(self.pop_up_list[0])
 
-        if self.do_update_budget:
-            self.update_budget()
+        if self.new_budget != self.budget:
+            self.budget = self.new_budget
+            self.do_update_budget_text = True
 
-    def update_budget(self):
+        if self.do_update_budget_text and self.budget:
+            self.update_budget_text(self.budget)
+            self.do_update_budget_text = False
+        
+        gf.check_chip_overlap(self.chip_group_placed)
+
+
+    def update_budget_text(self, budget: int):
         pos = self.settings.bg_rect.bottomright
-        msg = "€" + "{:,.2f}".format(self.budget)
+        msg = "€" + "{:,.2f}".format(budget)
         msg_image, msg_image_rect = gf.create_text(pos, msg, 40)
         msg_image_rect.bottomright = pos
         self.text_list.append((msg_image, msg_image_rect))
-        self.do_update_budget = False
 
     def update_budget_pop_up(self, pop_up: Pop_up):
         """Function to update the budget pop up."""
@@ -110,8 +123,8 @@ class Play_screen():
                     self.number = 0
 
             elif event.key == pygame.K_RETURN:
-                self.budget = self.number
-                self.do_update_budget = True
+                self.new_budget = self.number
+                self.do_update_budget_text = True
                 self.pop_up_list.pop(0)
                 self.board = Play_field(self.screen, self.settings)
                 self.create_chips()
@@ -120,7 +133,7 @@ class Play_screen():
         pop_up.msg_image_list.pop(1)
         pop_up.prep_msg(text, font_color=(0, 0, 0))
 
-    def create_pop_up(self):
+    def create_budget_pop_up(self):
         """Function to create the pop up."""
 
         new_popup = Pop_up(self.settings, (500, 400), (300, 200))
@@ -131,7 +144,7 @@ class Play_screen():
         self.pop_up_list.append(new_popup)
 
     def blitme(self):
-        """Function to blit the screen."""
+        """Function to blit to the screen."""
 
         for button in self.button_list:
             button.blitme(self.screen)
@@ -140,12 +153,19 @@ class Play_screen():
         for msg_image, msg_image_rect in self.text_list:
             self.screen.blit(msg_image, msg_image_rect)
 
+        # Draw the chips underneath the table
         self.chip_group.draw(self.screen)
-        self.chip_group_temp.draw(self.screen)
-        self.chip_group_placed.draw(self.screen)
 
-        if self.info_field:
-            pygame.draw.rect(self.screen, (255, 255, 255),self.info_field[0])
-            pygame.draw.rect(self.screen, (255, 255, 255),self.info_field[0])
-            self.screen.blit(self.info_field[2][0], self.info_field[2][1])
-                
+        # Draw the info fields
+        if self.info_field_list:
+            for field in self.info_field_list:
+                pygame.draw.rect(self.screen, (255, 255, 255),
+                                 field[0], border_radius=2)
+                self.screen.blit(field[2][0], field[2][1])
+        # Draw the bigger chip over the hovered chip
+        if self.chip_hovered:
+            self.screen.blit(self.chip_hovered.image, self.chip_hovered.rect)
+
+        # Draw the rest of the active chips
+        self.chip_group_placed.draw(self.screen)
+        self.chip_group_temp.draw(self.screen)
