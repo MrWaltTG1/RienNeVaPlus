@@ -44,6 +44,7 @@ class Pop_up():
         self.rect.center = pos
         self.msg_image_list = []
         self.color = self.settings.pop_up_bg_color
+        
 
     def prep_msg(self, msg: str, font_color=None, font_size=None, pos=(0, 0)):
         """Add text to the box"""
