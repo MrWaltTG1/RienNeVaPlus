@@ -2,7 +2,7 @@ import pygame
 
 
 class Roulette_wheel():
-    def __init__(self, screen, settings):
+    def __init__(self, screen, settings, game_info):
         self.screen = screen
         self.settings = settings
 

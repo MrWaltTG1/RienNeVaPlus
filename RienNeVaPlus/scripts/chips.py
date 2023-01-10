@@ -32,7 +32,9 @@ class Chip(pygame.sprite.Sprite):
     def reposition(self, x: int, y: int) -> None:
         self.rect.center = x, y
 
-    def get_expected_return(self, all_fields, all_hitboxes):
+    def get_expected_return(self, game_info):
+        all_fields = game_info.fields_list
+        all_hitboxes = game_info.hitboxes_dict
         self.field_list = gf.give_hovered_fields(all_fields, all_hitboxes)
         
         length = len(self.field_list)

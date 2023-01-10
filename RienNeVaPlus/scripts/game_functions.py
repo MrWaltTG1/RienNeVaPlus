@@ -4,42 +4,60 @@ import sys
 import possible_bets as pb
 from chips import Chip
 from settings import Settings
+from main_menu import Main_menu
+from play_screen import Play_screen
+from game_info import Game_info
 
 import pygame
 
 
-def update_screen(screen, *args, **kwargs):
-    settings = kwargs["settings"]
+def update_screen(screen, settings, main_menu, play_screen, game_info):
     screen.blit(settings.bg_surf, settings.bg_rect)
-    if kwargs["board"]:
-        kwargs["board"].blitme()
-
-        if settings.debug:
-            kwargs["board"].blit_hitboxes()
-    if kwargs["play_screen"]:
-        kwargs["play_screen"].blitme()
+    
+    if main_menu.active and game_info.current_stage == 0:
+        main_menu.blitme()
+    if play_screen.active and not game_info.current_stage == 0:
+        play_screen.blitme()
+    
+    for type, element_list in game_info.elements_dict.items():
+        if type == "buttons":
+            for button in element_list:
+                button.blitme(screen)
+        elif type == "pop_ups":
+            for pop_up in element_list:
+                pop_up.blitme(screen)
+        elif type == "info_fields":
+            for info_field in element_list:
+                info_field.blitme()
+        elif type == "chips":
+            for group in element_list:
+                group.draw(screen)
 
     pygame.display.flip()
 
 
-def check_events(screen, settings, play_screen):
-    for event in pygame.event.get(exclude=pygame.KEYDOWN):
+def check_events(screen, settings: Settings, main_menu: Main_menu,  play_screen: Play_screen, game_info: Game_info):
+    for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            check_mouse_down_events(event, screen, settings, play_screen)
+            check_mouse_down_events(event, screen, settings, main_menu, play_screen, game_info)
 
         elif event.type == pygame.MOUSEBUTTONUP:
             check_mouse_up_events(event)
         elif event.type == pygame.KEYDOWN:
-            check_key_down_events(event)
+            check_key_down_events(event, main_menu, game_info)
 
 
-def check_key_down_events(event):
-    pass
+def check_key_down_events(event, main_menu, game_info):
+    if game_info.current_stage == 0:
+        if main_menu.budget_pop_up_active == True:
+            main_menu.update_budget_pop_up(event)
+    elif game_info.current_stage == 1:
+        pass
 
 
-def check_mouse_down_events(event, screen, settings, play_screen):
+def check_mouse_down_events(event, screen, settings, main_menu, play_screen, game_info):
     x, y = event.pos
 
     if event.button == 1:
@@ -68,11 +86,10 @@ def check_mouse_down_events(event, screen, settings, play_screen):
                 new_chip = Chip(settings=settings, color=chip.color)
                 play_screen.chip_group_temp.add(new_chip)
 
-        for button in play_screen.button_list:
+        for button in game_info.elements_dict["buttons"]:
             if button.rect.collidepoint(x, y):
-                play_screen.create_budget_pop_up()
-                play_screen.button_list.remove(button)
-        
+                button.clicked = True
+
         try:
             if play_screen.roulette_wheel:
                 if play_screen.roulette_wheel.rect.collidepoint(x, y):
@@ -94,7 +111,6 @@ def spin_wheel():
     elif outcome in pb.rouge:
         print("r")
     return outcome
-
 
 
 def create_text(pos, msg: str, font_size: int, rotate=False, font_color=(255, 255, 255)):
@@ -245,32 +261,7 @@ def create_info_field(pos, size: list, msg):
     return field_list
 
 
-def update_info_field(field_list, chip=None, resize_speed = 1):
-    """Function to update the info field"""
 
-    x, y = 0, 0
-    if not field_list[0].bottom > field_list[1].bottom:
-        y = 4 * resize_speed
-    if not field_list[0].right > field_list[1].right:
-        x = 4 * resize_speed
-
-    # Resize the info field
-    field_list[0] = field_list[0].inflate(x, y)
-    # Align the field top left
-    field_list[0].topleft = field_list[1].topleft
-
-    # Align the text on the right side
-    field_list[2][1].right = field_list[0].right
-    # Increase the text transparency
-    alpha = field_list[2][0].get_alpha()
-    field_list[2][0].set_alpha(alpha + 10)
-    
-    if chip:
-        field_list[0].topleft = chip.rect.midtop
-        field_list[1].topleft = chip.rect.midtop
-        field_list[2][1].top = chip.rect.top
-
-    return field_list
 
 
 def check_chip_overlap(chip_group: pygame.sprite.Group):
@@ -296,14 +287,16 @@ def check_chip_overlap(chip_group: pygame.sprite.Group):
                             chip2.rect.centerx -= chip2.rect.width
                         break
 
+
 def check_winnings(outcome: int, placed_chips: pygame.sprite.Group):
     returns = 0
     for chip in placed_chips:
+        returns -= chip.price
         expected = chip.expected_return
         for field in chip.field_list:
             if str(outcome) == field.msg:
                 returns += expected
                 break
-            
+
     print(returns)
     return returns

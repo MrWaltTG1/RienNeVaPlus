@@ -4,10 +4,8 @@ import pygame
 
 
 class Play_field():
-    def __init__(self, screen, settings, *args, **kwargs) -> None:
-        self.screen, self.settings = screen, settings
-        self.args = args
-        self.kwargs = kwargs
+    def __init__(self, screen, settings, game_info) -> None:
+        self.screen, self.settings, self.game_info = screen, settings, game_info
 
         self.single_field_list, self.field_list = [], []
         self.create_single_fields()
@@ -16,6 +14,7 @@ class Play_field():
         self.create_thirds_fields()
         self.all_fields = [*self.single_field_list, *self.block_list,
                            *self.column_list, *self.thirds_fields_list]
+        self.all_hitbox_rects_dict = {}
         self.cull_hitboxes()
 
     def update(self):
@@ -24,6 +23,11 @@ class Play_field():
         if pygame.Rect.collidepoint(self.play_table_rect, x, y):  # type: ignore
             self.field_list = gf.give_hovered_fields(
                 self.all_fields, self.all_hitbox_rects_dict)
+        for field in self.all_fields:
+            if not field in self.game_info.fields_list:
+                self.game_info.fields_list.append(field)
+        self.game_info.hitboxes_dict = self.all_hitbox_rects_dict
+            
 
     def cull_hitboxes(self):
         self.all_hitbox_rects_dict = {}
