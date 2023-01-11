@@ -33,8 +33,18 @@ class Play_screen():
             self.screen, self.settings, self.game_info)
         self.create_chips()
         self.create_budget_text(self.budget, self.settings.bg_rect.bottomright)
+        self.create_placement_buttons()
 
         self.active = True
+
+    def create_placement_buttons(self):
+        text_list = ["undo", "cross", "redo"]
+        pos = [700, 200]
+        size = [35, 35]
+        for text in text_list:
+            pos[0] += int(size[0]*1.3)
+            new_button = Button(self.settings, pos, size, image=text)
+            self.button_list.append(new_button)
 
     def create_chips(self):
         """Function to create chips"""
@@ -56,12 +66,43 @@ class Play_screen():
 
     def update(self):
         """Function to update the board"""
+        if self.active:
+            self.game_info.chip_group_list = self.chip_all_groups_list
+            self.game_info.elements_dict["chips"] = self.chip_all_groups_list
+            
+            self.update_chips()
 
+            if self.info_field_list:
+                for field in self.info_field_list:
+                    field.update_info_field()
+
+            # Do button updates here
+            for button in self.button_list:
+                self.game_info.button_list.add(button)
+                if button.clicked == True:
+                    chip = gf.utility_buttons_action(self.game_info, button.msg)
+                    self.chip_group_placed.remove(chip)
+                    button.clicked = False
+
+            if self.board:
+                self.board.update()
+
+            if self.budget != self.game_info.personal_budget:
+                self.budget = self.game_info.personal_budget
+                self.update_budget_text(self.budget)
+
+            if self.outcome or self.outcome == 0:
+                returns = gf.check_winnings(self.outcome, self.chip_group_placed)
+                self.game_info.personal_budget += returns
+                self.outcome = None
+                self.chip_group_placed.empty()
+    
+    def update_chips(self):
+        """Function that handles updating the chips."""
+        gf.check_chip_overlap(self.chip_group_placed)
+        
         x, y = pygame.mouse.get_pos()
-
-        self.game_info.chip_group_list = self.chip_all_groups_list
-        self.game_info.elements_dict["chips"] = self.chip_all_groups_list
-
+        
         """For loop to update chips"""
         for chip in self.chip_group:
             if pygame.Rect.collidepoint(chip.rect, x, y):
@@ -70,18 +111,12 @@ class Play_screen():
             else:
                 self.chip_hovered = None
 
-        """Create an information box showing the chips price"""
+        """Create an information box showing the hovered chips price"""
         if self.chip_hovered:
             if not self.info_field_list:
-                price = self.chip_hovered.price
-                msg = "€" + "{:,}".format(price)
-                size = [5 + len(msg) * 5, self.chip_hovered.rect.h / 2]
-                pos = self.chip_hovered.rect.midtop
-
-                new_info_field = Info_field(
-                    self.screen, self.settings, pos, size, msg=msg, id=1)
+                new_info_field = gf.create_info_field(self.settings, self.game_info, chip=self.chip_hovered, id=1)
                 self.info_field_list.append(new_info_field)
-                self.game_info.info_fields_list.add(new_info_field)
+                
         elif self.info_field_list:
             if self.info_field_list[-1].id == 1:
                 self.info_field_list.clear()
@@ -96,15 +131,13 @@ class Play_screen():
                     if chip.price > self.budget:
                         self.chip_group_temp.remove(chip)
 
+            """Create an information box showing the selected chips expected return price"""
             if not self.info_field_list:
                 expected_return = chip.get_expected_return(self.game_info)
                 if expected_return != chip.price:
-                    msg = "€" + "{:,}".format(chip.price)
-                    size = [10 + len(msg) * 5, chip.rect.h / 2]
-                    new_info_field = Info_field(
-                        self.screen, self.settings, (x, y), size, msg=msg, id=2, chip=chip)
+                    new_info_field = gf.create_info_field(self.settings, self.game_info, chip=chip, id=2)
                     self.info_field_list.append(new_info_field)
-                    self.game_info.info_fields_list.add(new_info_field)
+
             else:
                 if self.info_field_list:
                     expected_return = chip.get_expected_return(self.game_info)
@@ -119,29 +152,10 @@ class Play_screen():
                 if self.info_field_list[-1].id == 2:
                     self.info_field_list.clear()
                     self.game_info.info_fields_list.clear()
-                    
+
         for chip in self.chip_group_placed:
             if not hasattr(chip, "expected_return"):
                 chip.get_expected_return(self.game_info)
-
-        if self.info_field_list:
-            for field in self.info_field_list:
-                field.update_info_field()
-
-        if self.board:
-            self.board.update()
-            
-        if self.budget != self.game_info.personal_budget:
-            self.budget = self.game_info.personal_budget
-            self.update_budget_text(self.budget)
-
-        gf.check_chip_overlap(self.chip_group_placed)
-        
-        if self.outcome or self.outcome == 0:
-            returns = gf.check_winnings(self.outcome, self.chip_group_placed)
-            self.game_info.personal_budget += returns
-            self.outcome = None
-            self.chip_group_placed.empty()
 
     def update_budget_text(self, budget: int, index=0, font_color=None):
         pos = self.text_list[index][1].bottomright

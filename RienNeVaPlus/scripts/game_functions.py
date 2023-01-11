@@ -7,6 +7,7 @@ from settings import Settings
 from main_menu import Main_menu
 from play_screen import Play_screen
 from game_info import Game_info
+from elements import Info_field
 
 import pygame
 
@@ -28,7 +29,7 @@ def update_screen(screen, settings, main_menu, play_screen, game_info):
                 pop_up.blitme(screen)
         elif type == "info_fields":
             for info_field in element_list:
-                info_field.blitme()
+                info_field.blitme(screen)
         elif type == "chips":
             for group in element_list:
                 group.draw(screen)
@@ -72,7 +73,6 @@ def check_mouse_down_events(event, screen, settings, main_menu, play_screen, gam
                                         )[-1].color,
                                         resize_multiplier=0.5)
                         new_chip.reposition(hitbox.centerx, hitbox.centery)
-                        play_screen.new_budget -= new_chip.price
                         reset_chip = False
                         do_break = True
                         break
@@ -83,7 +83,7 @@ def check_mouse_down_events(event, screen, settings, main_menu, play_screen, gam
 
         for chip in play_screen.chip_group:
             if chip.rect.collidepoint(x, y):
-                new_chip = Chip(settings=settings, color=chip.color)
+                new_chip = Chip(settings=settings, color=chip.color, resize_multiplier=0.5)
                 play_screen.chip_group_temp.add(new_chip)
 
         for button in game_info.elements_dict["buttons"]:
@@ -115,7 +115,7 @@ def spin_wheel():
 
 def create_text(pos, msg: str, font_size: int, rotate=False, font_color=(255, 255, 255)):
     """Create text inside the box"""
-    font = pygame.font.SysFont("Ariel", font_size)
+    font = pygame.font.SysFont("Consolas", int(font_size))
     msg_image = font.render(msg, True, font_color)
     msg_image_rect = msg_image.get_rect()
     if rotate:
@@ -247,23 +247,19 @@ def make_field_glow(screen: pygame.Surface, field):
             screen, (219, 207, 37), field.rect, width=5)
 
 
-def create_info_field(pos, size: list, msg):
-    """Returns a list of textbox info.
-
-    Used to create the chip info box."""
-    start_rect = pygame.Rect(pos, (size))
-    end_rect = pygame.Rect(pos, (size[0]*2, size[1]))
-    msg_surf, msg_rect = create_text(
-        end_rect.center, msg, 30, font_color=(0, 0, 0))
-    msg_surf.set_alpha(10)
-    field_list = [start_rect, end_rect, [msg_surf, msg_rect]]
-
-    return field_list
-
-
-
-
-
+def create_info_field(settings, game_info, size=None, msg=None, color=None, id=None, chip=None):
+    """Used to create the chip info box."""
+    if not color:
+        color = (255, 255, 255)
+    if chip:
+        msg = "€" + "{:,}".format(chip.price)
+        size = [len(msg) * 15, chip.rect.h / 2]
+        
+    new_info_field = Info_field(settings, size, color, msg, id, chip)
+    game_info.info_fields_list.add(new_info_field)
+    
+    return new_info_field
+    
 def check_chip_overlap(chip_group: pygame.sprite.Group):
     """Checks if chips overlap in the given group and repositions if necessary"""
 
@@ -300,3 +296,36 @@ def check_winnings(outcome: int, placed_chips: pygame.sprite.Group):
 
     print(returns)
     return returns
+
+def utility_buttons_action(game_info: Game_info, button_function: str):
+    text_list = ("undo", "cross", "redo")
+    if button_function in text_list:
+        if button_function == "undo":
+            if game_info.placed_chips_list:
+                chip = game_info.placed_chips_list[-1]
+                game_info.placed_chips_undo_list.append(chip)
+                if game_info.placed_chips_redo_list:
+                    game_info.placed_chips_redo_list.remove(chip)
+                game_info.placed_chips_list.remove(chip)
+            
+        elif button_function == "redo":
+            if game_info.placed_chips_undo_list:
+                chip = game_info.placed_chips_undo_list[-1]
+                game_info.placed_chips_redo_list.append(chip)
+                if game_info.placed_chips_undo_list:
+                    game_info.placed_chips_undo_list.remove(chip)
+                game_info.placed_chips_list.append(chip)
+            
+        if button_function == "cross":
+            if game_info.placed_chips_list:
+                for chip in game_info.placed_chips_list:
+                    game_info.placed_chips_undo_list.append(chip)
+                    if chip in game_info.placed_chips_redo_list:
+                        game_info.placed_chips_redo_list.remove(chip)
+                    game_info.placed_chips_list.remove(chip)
+                    
+        try:
+            return chip
+        except UnboundLocalError:
+            print("Could not find a chip to return")
+            return None

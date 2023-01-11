@@ -25,7 +25,7 @@ def run():
     active = True
     while active:
         clockobject.tick(60)
-        
+        game_info.update()
         if game_info.current_stage == 0:
             main_menu.update()
         elif game_info.current_stage > 0:

@@ -18,11 +18,13 @@ class Play_field():
         self.cull_hitboxes()
 
     def update(self):
+        
         self.field_list = []
         x, y = pygame.mouse.get_pos()
         if pygame.Rect.collidepoint(self.play_table_rect, x, y):  # type: ignore
             self.field_list = gf.give_hovered_fields(
                 self.all_fields, self.all_hitbox_rects_dict)
+            
         for field in self.all_fields:
             if not field in self.game_info.fields_list:
                 self.game_info.fields_list.append(field)
@@ -54,8 +56,6 @@ class Play_field():
                 msg = "NaN"
             self.all_hitbox_rects_dict[msg] = field.hitbox_rect_dict
 
-        for key, value in self.all_hitbox_rects_dict.items():
-            print(key, ":", value)
 
     def create_thirds_fields(self):
         msg_list = ["P12", "M12", "D12"]
@@ -79,11 +79,11 @@ class Play_field():
                 if i in pb.noir:
                     # If field is black
                     new_field = Single_field(
-                        size=size, color=(0, 0, 0), number=i, pos=pos)
+                        size=size, color=(0, 0, 0), number=i, pos=pos, settings=self.settings)
                 elif i in pb.rouge:
                     # If field is red
                     new_field = Single_field(
-                        size=size, color=(255, 0, 0), number=i, pos=pos)
+                        size=size, color=(255, 0, 0), number=i, pos=pos, settings=self.settings)
                 else:
                     new_field = None
                     print("Error: Single number is not black or red")
@@ -116,7 +116,7 @@ class Play_field():
         for msg in msg_list:
             pos[1] -= size[1]
             new_column_field = Single_field(
-                size=size, pos=pos, color=None, number=msg
+                size=size, pos=pos, color=None, number=msg, settings=self.settings
             )
             self.column_list.append(new_column_field)
 
@@ -192,11 +192,11 @@ class Single_field(pygame.sprite.Sprite):
         # Create text and hitboxes
         if "number" not in kwargs:
             self.msg = ""
-            font_size = 60
+            font_size = kwargs["settings"].font_size
             self.hitbox_rect_dict = gf.create_hitboxes(self, center_only=True)
         elif isinstance(kwargs["number"], int):
             self.msg = str(kwargs["number"])
-            font_size = 30
+            font_size = kwargs["settings"].font_size / 2
             self.hitbox_rect_dict = gf.create_hitboxes(self)
             self.msg_image, self.msg_image_rect = gf.create_text(
                 self.rect.center, self.msg, font_size, rotate=True)
@@ -273,7 +273,7 @@ class Thirds_field():
 
         # Create a Rect so the text can be centered
         self.rect = pygame.Rect(pos, (size[0], size[1]))
-        self.rect.topleft = self.points[1]  # type: ignore
+        self.rect.topleft = self.points[1][0], self.points[1][1] + 1  # type: ignore
         self.rect.left += 1
         # Create text
         self.msg = msg

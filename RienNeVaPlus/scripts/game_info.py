@@ -13,7 +13,10 @@ class Game_info():
         
         self.button_list = set()
         self.pop_up_list = set()
-        self.chip_group_list = set()
+        self.chip_group_list = []
+        self.placed_chips_list = []
+        self.placed_chips_redo_list = []
+        self.placed_chips_undo_list = []
         self.info_fields_list = set()
         self.fields_list = list()
         self.hitboxes_dict = dict()
@@ -30,3 +33,8 @@ class Game_info():
     def update(self):
         if len(self.previous_rolled_numbers_list) > 5:
             self.previous_rolled_numbers_list.pop(-1)
+        
+        if self.chip_group_list:
+            # Index 2 is placed chips group
+            for chip in self.chip_group_list:
+                self.placed_chips_list.append(chip)
