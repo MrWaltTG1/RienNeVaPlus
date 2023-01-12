@@ -5,7 +5,7 @@ import pygame
 
 class Play_field():
     def __init__(self, screen, settings, game_info) -> None:
-        self.screen, self.settings, self.game_info = screen, settings, game_info
+        self.screen, self.settings, self.gi = screen, settings, game_info
 
         self.single_field_list, self.field_list = [], []
         self.create_single_fields()
@@ -26,9 +26,9 @@ class Play_field():
                 self.all_fields, self.all_hitbox_rects_dict)
             
         for field in self.all_fields:
-            if not field in self.game_info.fields_list:
-                self.game_info.fields_list.append(field)
-        self.game_info.hitboxes_dict = self.all_hitbox_rects_dict
+            if not field in self.gi.fields_list:
+                self.gi.fields_list.append(field)
+        self.gi.hitboxes_dict = self.all_hitbox_rects_dict
             
 
     def cull_hitboxes(self):

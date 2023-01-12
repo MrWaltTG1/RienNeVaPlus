@@ -61,3 +61,6 @@ class Chip(pygame.sprite.Sprite):
             print("Failed to calculate expected return. Chip has no price!")
             
         return self.expected_return
+    
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)

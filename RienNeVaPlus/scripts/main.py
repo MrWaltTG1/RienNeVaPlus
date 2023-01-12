@@ -32,6 +32,9 @@ def run():
             if not play_screen.active:
                 play_screen.create_self()
             play_screen.update()
+            
+            if game_info.winnings_screen:
+                game_info.winnings_screen.update()
         
         gf.check_events(screen, settings, main_menu, play_screen, game_info)
         gf.update_screen(screen, settings, main_menu, play_screen, game_info)

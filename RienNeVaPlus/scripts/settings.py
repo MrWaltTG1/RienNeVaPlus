@@ -49,3 +49,7 @@ class Settings():
         # START SCREEN
         self.start_button_pos = 500, 400
         self.start_button_size = 500, 400
+
+        # Roulette wheel
+        self.spinning_time_min = 500
+        self.spinning_time_max = 2000

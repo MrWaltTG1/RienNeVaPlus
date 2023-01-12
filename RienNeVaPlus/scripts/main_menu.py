@@ -1,14 +1,15 @@
 import pygame
 from elements import Button, Pop_up
+from game_info import Game_info
 
 
 class Main_menu():
-    def __init__(self, screen, settings, game_info):
+    def __init__(self, screen, settings, game_info: Game_info):
         """Class that holds the main menu"""
 
         self.screen = screen
         self.settings = settings
-        self.game_info = game_info
+        self.gi = game_info
         self.button_list, self.pop_up_list = [], []
         self.active = False
         self.budget_pop_up_active = False
@@ -32,7 +33,7 @@ class Main_menu():
         self.budget_number = 0
         new_popup.prep_msg("")
         self.pop_up_list.append(new_popup)
-        self.game_info.pop_up_list.update(self.pop_up_list)
+        self.gi.pop_up_list.update(self.pop_up_list)
         self.budget_pop_up_active = True
 
     def update_budget_pop_up(self, event: pygame.event.Event) -> None:
@@ -50,10 +51,11 @@ class Main_menu():
                 self.budget_number = 0
 
         elif event.key == pygame.K_RETURN:
-            self.game_info.current_stage = 1
+            self.gi.current_stage = 1
             self.pop_up_list.remove(pop_up)
-            self.game_info.pop_up_list.remove(pop_up)
-            self.game_info.personal_budget = int(self.budget_number)
+            self.gi.pop_up_list.remove(pop_up)
+            self.gi.button_list.clear()
+            self.gi.personal_budget = int(self.budget_number)
             self.budget_pop_up_active = False
             self.active = False
 
@@ -93,7 +95,7 @@ class Main_menu():
         if self.active:
             # Do button updates here
             for button in self.button_list:
-                self.game_info.button_list.add(button)
+                self.gi.button_list.add(button)
                 if button.clicked == True:
                     # do button click
                     if len(self.button_list) > 1:
@@ -101,7 +103,7 @@ class Main_menu():
                         pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN, unicode= "/r"))
                         self.budget_number = int(budget)
                         self.button_list.clear()
-                        self.game_info.button_list.clear()
+                        self.gi.button_list.clear()
                         
                         
                     elif button == self.button_list[0]:
@@ -109,7 +111,7 @@ class Main_menu():
                         self.create_pop_up_budget()
                         self.create_preset_budget_buttons()
                         self.button_list.remove(button)
-                        self.game_info.button_list.remove(button)
+                        self.gi.button_list.remove(button)
                         if not self.pop_up_list:
                             raise Exception(
                                 "The start button should be number one. But it isnt")
