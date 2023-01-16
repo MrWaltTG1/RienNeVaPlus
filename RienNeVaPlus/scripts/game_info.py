@@ -1,16 +1,18 @@
 import pygame
-
+from main_menu import Main_menu
+from play_screen import Play_screen
 
 class Game_info():
-    def __init__(self) -> None:
+    def __init__(self, screen, settings) -> None:
         """Class that saves game info"""
         # Stage 0 == before the table is initialized
         # Stage 1 == active phase of the game
         # Stage 2 == while the roulette wheel is active and after when showing the winnings
         self.current_stage = 0
         self.personal_budget = 0
+        self.returns = 0
         self.expected_winnings = 0
-        self.previous_rolled_numbers_list = []
+        self.previous_rolled_numbers_list = [0, 0, 0, 0, 0]
 
         self.button_list = set()
         self.pop_up_list = set()
@@ -37,6 +39,10 @@ class Game_info():
         }
         
         self.current_tick = pygame.time.get_ticks()
+        
+        self.main_menu = Main_menu(screen, settings, self)
+        self.play_screen = Play_screen(screen=screen, settings=settings, game_info=self)
+        self.reset = False
 
     def update(self):
         self.elements_dict = {

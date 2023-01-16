@@ -10,6 +10,7 @@ from game_info import Game_info
 from main_menu import Main_menu
 from play_screen import Play_screen
 from settings import Settings
+from pause_screen import Pause_screen
 
 
 def update_screen(screen, settings: Settings, main_menu: Main_menu, play_screen: Play_screen, game_info: Game_info):
@@ -67,72 +68,75 @@ def check_key_down_events(event, main_menu, game_info):
 
 def check_mouse_down_events(event, screen, settings: Settings, main_menu, play_screen: Play_screen, game_info: Game_info):
     x, y = event.pos
-    
+
     # LMB
     if event.button == 1:
         if game_info.current_stage < 2:
-            """If there is a cursor chip"""
-            if game_info.cursor_chip:
-                reset_chip = True
-                do_break = False
-                """Place a chip on the right location"""
-                for hitbox_dict in game_info.hitboxes_dict.values():
-                    for hitbox in hitbox_dict.values():
-                        if check_hitbox_mouse_collision(hitbox):
-                            new_chip = Chip(game_info.all_chips_group_list[2], settings=settings,
-                                            color=game_info.cursor_chip.color,
-                                            resize_multiplier=0.5)
-                            new_chip.reposition(hitbox.centerx, hitbox.centery)
-                            game_info.placed_chips_list.append(new_chip)
-                            reset_chip = False
-                            do_break = True
-                            break
-                    if do_break:
-                        break
-                """If a chip cannot be placed then remove the chip from the cursor"""
-                if reset_chip:
-                    game_info.cursor_chip = None
-                    
-            else:
-                """If a chip cannot be placed, then check if a placed chip has been clicked to remove it"""
-                for placed_chip in game_info.placed_chips_list:
-                    if placed_chip.rect.collidepoint(x, y):
-                        for chip_check in game_info.placed_chips_list:
-                            if placed_chip.rect.collidepoint(chip_check.rect.centerx -2, chip_check.rect.centery + 2):
-                                if game_info.placed_chips_list.index(placed_chip) < game_info.placed_chips_list.index(chip_check):
-                                    placed_chip = chip_check
-                        game_info.placed_chips_list.remove(placed_chip)
-                        game_info.placed_chips_undo_list.append([placed_chip])
-                        break
-            
-            """Create a cursor chip"""
-            for chip_list in game_info.all_chips_group_list[:1]:
-                for chip in chip_list:
-                    if chip.rect.collidepoint(x, y) and chip.price <= game_info.personal_budget:
-                        new_chip = Chip(settings=settings,
-                                        color=chip.color, resize_multiplier=0.5)
-                        game_info.cursor_chip = new_chip  # type: ignore
-            
-            """Set button state to true when clicked"""
-            for button in game_info.elements_dict["buttons"]:
-                if button.rect.collidepoint(x, y):
-                    button.clicked = True
-
-            try:
-                if play_screen.roulette_wheel:
-                    if play_screen.roulette_wheel.rect.collidepoint(x, y):
-                        if game_info.placed_chips_list:
-                            # game_info.outcome = spin_wheel()
-                            play_screen.roulette_wheel.spin()
-                            game_info.current_stage = 2
-                        else:
-                            print("No chips have been placed on the board yet")
-            except Exception:
-                pass
-
             if game_info.winnings_screen:
                 if game_info.winnings_screen.rect.collidepoint(x, y):
                     game_info.winnings_screen.active = False
+                    if game_info.winnings_screen.game_over == True:
+                        game_info.reset = True
+            else:
+                """If there is a cursor chip"""
+                if game_info.cursor_chip:
+                    reset_chip = True
+                    do_break = False
+                    """Place a chip on the right location"""
+                    for hitbox_dict in game_info.hitboxes_dict.values():
+                        for hitbox in hitbox_dict.values():
+                            if check_hitbox_mouse_collision(hitbox):
+                                new_chip = Chip(game_info.all_chips_group_list[2], settings=settings,
+                                                color=game_info.cursor_chip.color,
+                                                resize_multiplier=0.5)
+                                new_chip.reposition(
+                                    hitbox.centerx, hitbox.centery)
+                                game_info.placed_chips_list.append(new_chip)
+                                reset_chip = False
+                                do_break = True
+                                break
+                        if do_break:
+                            break
+                    """If a chip cannot be placed then remove the chip from the cursor"""
+                    if reset_chip:
+                        game_info.cursor_chip = None
+
+                else:
+                    """If a chip cannot be placed, then check if a placed chip has been clicked to remove it"""
+                    for placed_chip in game_info.placed_chips_list:
+                        if placed_chip.rect.collidepoint(x, y):
+                            for chip_check in game_info.placed_chips_list:
+                                if placed_chip.rect.collidepoint(chip_check.rect.centerx - 2, chip_check.rect.centery + 2):
+                                    if game_info.placed_chips_list.index(placed_chip) < game_info.placed_chips_list.index(chip_check):
+                                        placed_chip = chip_check
+                            game_info.placed_chips_list.remove(placed_chip)
+                            game_info.placed_chips_undo_list.append(
+                                [placed_chip])
+                            break
+
+                """Create a cursor chip"""
+                for chip_list in game_info.all_chips_group_list[:1]:
+                    for chip in chip_list:
+                        if chip.rect.collidepoint(x, y) and chip.price <= game_info.personal_budget:
+                            new_chip = Chip(settings=settings,
+                                            color=chip.color, resize_multiplier=0.5)
+                            game_info.cursor_chip = new_chip  # type: ignore
+
+                """Set button state to true when clicked"""
+                for button in game_info.elements_dict["buttons"]:
+                    if button.rect.collidepoint(x, y):
+                        button.clicked = True
+
+                try:
+                    if play_screen.roulette_wheel:
+                        if play_screen.roulette_wheel.rect.collidepoint(x, y):
+                            if game_info.placed_chips_list:
+                                # game_info.outcome = spin_wheel()
+                                play_screen.roulette_wheel.spin()
+                            else:
+                                print("No chips have been placed on the board yet")
+                except Exception:
+                    pass
 
 
 def check_mouse_up_events(event):
@@ -337,7 +341,7 @@ def check_winnings(game_info: Game_info):
                 returns += expected
                 break
 
-    print(returns)
+    print(str(returns) + "$")
     return returns
 
 
@@ -373,3 +377,7 @@ def utility_buttons_action(game_info: Game_info, button_function: str):
                 game_info.placed_chips_list.clear()
 
     return chip_list, remove
+
+def game_over(screen, settings: Settings, game_info: Game_info):
+    game_over = Pause_screen(screen, settings, game_info, True)
+    game_info.winnings_screen = game_over # type: ignore

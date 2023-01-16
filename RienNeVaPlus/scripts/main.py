@@ -1,8 +1,6 @@
 import pygame
 import game_functions as gf
 from settings import Settings
-from play_screen import Play_screen
-from main_menu import Main_menu
 from game_info import Game_info
 
 
@@ -14,30 +12,32 @@ def run():
     
     clockobject = pygame.time.Clock()
     # Initialize the game objects
-    game_info = Game_info()
-    main_menu = Main_menu(screen, settings, game_info)
-    play_screen = Play_screen(screen=screen, settings=settings, game_info=game_info)
+    game_info = Game_info(screen, settings)
+
     
     # Create the main menu
-    main_menu.create_self()
+    game_info.main_menu.create_self()
     
     # As long as active is true the game will continue
     active = True
     while active:
+        if game_info.reset == True:
+            game_info = Game_info(screen, settings)
+            game_info.main_menu.create_self()
         clockobject.tick(60)
         game_info.update()
         if game_info.current_stage == 0:
-            main_menu.update()
+            game_info.main_menu.update()
         elif game_info.current_stage > 0:
-            if not play_screen.active:
-                play_screen.create_self()
-            play_screen.update()
+            if not game_info.play_screen.active:
+                game_info.play_screen.create_self()
+            game_info.play_screen.update()
             
             if game_info.winnings_screen:
                 game_info.winnings_screen.update()
         
-        gf.check_events(screen, settings, main_menu, play_screen, game_info)
-        gf.update_screen(screen, settings, main_menu, play_screen, game_info)
+        gf.check_events(screen, settings, game_info.main_menu, game_info.play_screen, game_info)
+        gf.update_screen(screen, settings, game_info.main_menu, game_info.play_screen, game_info)
 
 
 run()

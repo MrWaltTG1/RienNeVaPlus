@@ -37,7 +37,8 @@ class Button():
         text_dict = {
             "redo" : "RienNeVaPlus/images/redo_button.bmp",
             "cross" : "RienNeVaPlus/images/cross_thin.bmp",
-            "undo" : "RienNeVaPlus/images/undo_button.bmp"
+            "undo" : "RienNeVaPlus/images/undo_button.bmp",
+            "back" : "RienNeVaPlus/images/back_button.bmp"
         }
         image_surf = pygame.image.load(text_dict[image])
         image_surf = pygame.transform.smoothscale(image_surf, self.size)

@@ -2,17 +2,15 @@ import game_functions as gf
 import pygame
 from chips import Chip
 from elements import Button, Info_field, Pop_up
-from game_info import Game_info
 from play_table import Play_field
 from roulette_wheel import Roulette_wheel
 from settings import Settings
-from winnings_screen import Winnings_screen
 
 
 class Play_screen():
     """Creates the play screen"""
 
-    def __init__(self, screen, settings: Settings, game_info: Game_info) -> None:
+    def __init__(self, screen, settings: Settings, game_info) -> None:
         """Init"""
 
         self.screen, self.settings, self.gi = screen, settings, game_info
@@ -36,6 +34,7 @@ class Play_screen():
         self.create_chips()
         self.create_budget_text(self.budget, self.settings.bg_rect.bottomright)
         self.create_placement_buttons()
+        self.create_back_button()
 
         self.active = True
 
@@ -47,6 +46,13 @@ class Play_screen():
             pos[0] += int(size[0]*1.3)
             new_button = Button(self.settings, pos, size, image=text)
             self.button_list.append(new_button)
+        
+    def create_back_button(self):
+        text = "back"
+        pos = 50,50
+        size = [35, 35]
+        new_button = Button(self.settings, pos, size, image=text)
+        self.button_list.append(new_button)
 
     def create_chips(self):
         """Function to create chips"""
@@ -80,14 +86,17 @@ class Play_screen():
             for button in self.button_list:
                 self.gi.button_list.add(button)
                 if button.clicked == True:
-                    chip_list, remove = gf.utility_buttons_action(
-                        self.gi, button.msg)
-                    if remove:
-                        for chip in chip_list:
-                            self.chip_group_placed.remove(chip)
-                    elif remove == False:
-                        for chip in chip_list:
-                            self.chip_group_placed.add(chip)
+                    if button.msg != "back":
+                        chip_list, remove = gf.utility_buttons_action(
+                            self.gi, button.msg)
+                        if remove:
+                            for chip in chip_list:
+                                self.chip_group_placed.remove(chip)
+                        elif remove == False:
+                            for chip in chip_list:
+                                self.chip_group_placed.add(chip)
+                    else:
+                        self.gi.reset = True
                     button.clicked = False
 
             if self.board:
@@ -95,18 +104,22 @@ class Play_screen():
                 
             if self.roulette_wheel:
                 self.roulette_wheel.update()
+                
+            del self.text_list[1:]
+            for i, number in enumerate(self.gi.previous_rolled_numbers_list):
+                pos = 900, 30 + i*30
+                msg = str(number)
+                font_size = self.settings.font_size
+                surf, rect = gf.create_text(pos, msg, font_size)
+                self.text_list.append([surf, rect])
 
             if self.budget != self.gi.personal_budget:
                 self.budget = self.gi.personal_budget
                 self.update_budget_text(self.budget)
+                
+            if self.gi.personal_budget <= 0:
+                gf.game_over(self.screen, self.settings, self.gi)
 
-            # When the wheel has spun do:
-            if not self.gi.outcome == -1:
-                returns = gf.check_winnings(self.gi)
-                self.gi.personal_budget += returns
-                self.gi.outcome = -1
-                self.gi.placed_chips_list.clear()
-                Winnings_screen(self.screen, self.settings, self.gi)
 
     def update_chips(self):
         """Function that handles updating the chips."""
@@ -157,7 +170,7 @@ class Play_screen():
                         self.info_field_list.clear()
                         self.gi.info_fields_list.clear()
 
-        if not self.cursor_chip:
+        if not self.gi.cursor_chip:
             if self.info_field_list:
                 if self.info_field_list[-1].id == 2:
                     self.info_field_list.clear()

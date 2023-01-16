@@ -1,10 +1,9 @@
 import pygame
 from elements import Button, Pop_up
-from game_info import Game_info
 
 
 class Main_menu():
-    def __init__(self, screen, settings, game_info: Game_info):
+    def __init__(self, screen, settings, game_info):
         """Class that holds the main menu"""
 
         self.screen = screen
