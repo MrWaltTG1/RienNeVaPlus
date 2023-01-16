@@ -29,22 +29,22 @@ class Button():
         msg_image = font.render(msg, True, text_color)
         msg_image_rect = msg_image.get_rect()
         msg_image_rect.center = self.rect.center
-        
+
         return msg_image, msg_image_rect
-    
+
     def prep_image(self, image: str):
         self.msg = image
         text_dict = {
-            "redo" : "RienNeVaPlus/images/redo_button.bmp",
-            "cross" : "RienNeVaPlus/images/cross_thin.bmp",
-            "undo" : "RienNeVaPlus/images/undo_button.bmp",
-            "back" : "RienNeVaPlus/images/back_button.bmp"
+            "redo": "RienNeVaPlus/images/redo_button.bmp",
+            "cross": "RienNeVaPlus/images/cross_thin.bmp",
+            "undo": "RienNeVaPlus/images/undo_button.bmp",
+            "back": "RienNeVaPlus/images/back_button.bmp"
         }
         image_surf = pygame.image.load(text_dict[image])
         image_surf = pygame.transform.smoothscale(image_surf, self.size)
         image_rect = image_surf.get_rect()
         image_rect.center = self.rect.center
-        
+
         return image_surf, image_rect
 
     def blitme(self, screen):
@@ -58,7 +58,7 @@ class Button():
 
             # Draw the box and the text
             pygame.draw.rect(screen, self.button_color,
-                            self.rect, border_radius=self.border)
+                             self.rect, border_radius=self.border)
         screen.blit(self.image, self.image_rect)
 
 
@@ -95,7 +95,6 @@ class Pop_up():
             msg_image_rect.topleft = self.rect.left + \
                 pos[0], self.rect.top + pos[1]
         self.msg_image_list.append((msg_image, msg_image_rect))
-        
 
     def blitme(self, screen):
         # Draw the box and the text
@@ -106,11 +105,11 @@ class Pop_up():
 
 class Info_field():
 
-    def __init__(self, settings, size, color=(255,255,255), msg=None, id=None, chip=None) -> None:
+    def __init__(self, settings, size, color=(255, 255, 255), msg=None, id=None, chip=None) -> None:
         self.settings = settings
         self.id = id
-        self.chip=chip
-        pos = (0,0)
+        self.chip = chip
+        pos = (0, 0)
         self.start_rect = pygame.Rect(pos, (size[0]/2, size[1]))
         self.end_rect = pygame.Rect(pos, (size))
         self.alpha = 10
@@ -126,38 +125,35 @@ class Info_field():
         self.msg_image_rect = self.msg_image.get_rect()
         self.msg_image_rect.center = pos
         self.msg_image.set_alpha(self.alpha)
-        
+
     def update_info_field(self, resize_speed=1):
         """Function to update the info field"""
-        
+
         # Resize the info field with the text rect within
         w, h = self.msg_image_rect.size
         self.end_rect.size = w + 10, h
-        
+
         # Calculate if the box needs to be resized
         x, y = 0, 0
         if not self.start_rect.h > self.end_rect.h:
             y = 3 * resize_speed
-            
+
         if not self.start_rect.w > self.end_rect.w:
             x = 3 * resize_speed
         elif not self.start_rect.w < self.end_rect.w:
             x = -3 * resize_speed
 
-
         # Resize the info field
         self.start_rect = self.start_rect.inflate(x, y)
-        
-        #Make sure the rect doesnt exceed the size
+
+        # Make sure the rect doesnt exceed the size
         if x > 0:
             if self.start_rect.w > self.end_rect.w:
                 self.start_rect.w = self.end_rect.w
         elif x < 0:
             if self.start_rect.w < self.end_rect.w:
                 self.start_rect.w = self.end_rect.w
-            
 
-        
         # Align the field top left
         self.start_rect.topleft = self.end_rect.topleft
 
@@ -178,8 +174,7 @@ class Info_field():
     def blitme(self, screen):
         try:
             pygame.draw.rect(screen, self.color, self.start_rect, 0, 2)
-            pygame.draw.rect(screen, (0,0,0), self.start_rect, 1, 2)
+            pygame.draw.rect(screen, (0, 0, 0), self.start_rect, 1, 2)
             screen.blit(self.msg_image, self.msg_image_rect)
         except AttributeError:
             pass
-        

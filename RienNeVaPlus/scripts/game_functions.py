@@ -59,6 +59,9 @@ def check_events(screen, settings: Settings, main_menu: Main_menu,  play_screen:
 
 
 def check_key_down_events(event, main_menu, game_info):
+    if event.key == pygame.K_ESCAPE:
+        pygame.quit()
+        sys.exit()
     if game_info.current_stage == 0:
         if main_menu.budget_pop_up_active == True:
             main_menu.update_budget_pop_up(event)
@@ -378,6 +381,7 @@ def utility_buttons_action(game_info: Game_info, button_function: str):
 
     return chip_list, remove
 
+
 def game_over(screen, settings: Settings, game_info: Game_info):
     game_over = Pause_screen(screen, settings, game_info, True)
-    game_info.winnings_screen = game_over # type: ignore
+    game_info.winnings_screen = game_over  # type: ignore

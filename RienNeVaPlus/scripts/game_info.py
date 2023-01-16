@@ -2,6 +2,7 @@ import pygame
 from main_menu import Main_menu
 from play_screen import Play_screen
 
+
 class Game_info():
     def __init__(self, screen, settings) -> None:
         """Class that saves game info"""
@@ -37,11 +38,12 @@ class Game_info():
             "hitboxes": self.hitboxes_dict,
             "winnings_screen": self.winnings_screen
         }
-        
+
         self.current_tick = pygame.time.get_ticks()
-        
+
         self.main_menu = Main_menu(screen, settings, self)
-        self.play_screen = Play_screen(screen=screen, settings=settings, game_info=self)
+        self.play_screen = Play_screen(
+            screen=screen, settings=settings, game_info=self)
         self.reset = False
 
     def update(self):
@@ -54,7 +56,7 @@ class Game_info():
             "hitboxes": self.hitboxes_dict,
             "winnings_screen": self.winnings_screen
         }
-        
+
         self.current_tick = pygame.time.get_ticks()
 
         if len(self.previous_rolled_numbers_list) > 5:

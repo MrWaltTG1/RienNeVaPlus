@@ -10,14 +10,14 @@ class Chip(pygame.sprite.Sprite):
         # This could also be an image loaded from the disk.
         self.original_image = pygame.image.load(
             "RienNeVaPlus/images/chip_greyed.bmp")
-        
+
         self.size = [40*resize_multiplier, 40*resize_multiplier]
         self.image = pygame.transform.smoothscale(
             self.original_image, self.size)
         # Color the chip
         if self.color:
             self.image.fill(self.color, special_flags=pygame.BLEND_RGB_MAX)
-            
+
             for k, v in settings.chip_color_dict.items():
                 if v == self.color:
                     for l, b in settings.chip_price_dict.items():
@@ -36,7 +36,7 @@ class Chip(pygame.sprite.Sprite):
         all_fields = game_info.fields_list
         all_hitboxes = game_info.hitboxes_dict
         self.field_list = gf.give_hovered_fields(all_fields, all_hitboxes)
-        
+
         length = len(self.field_list)
         if length == 1:
             price_multiplier = 35
@@ -54,13 +54,13 @@ class Chip(pygame.sprite.Sprite):
             price_multiplier = 1
         else:
             price_multiplier = 0
-        
+
         try:
             self.expected_return = self.price + self.price * price_multiplier
         except ValueError:
             print("Failed to calculate expected return. Chip has no price!")
-            
+
         return self.expected_return
-    
+
     def draw(self, screen):
         screen.blit(self.image, self.rect)

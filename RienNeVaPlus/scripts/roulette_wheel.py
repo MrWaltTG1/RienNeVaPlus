@@ -61,23 +61,23 @@ class Roulette_wheel():
         if self.angle >= 360:
             self.angle -= 360
         start_speed = 10
-        var  = (self.spinning_time / (self.end_tick - self.gi.current_tick))
+        var = (self.spinning_time / (self.end_tick - self.gi.current_tick))
         self.speed = start_speed / var
 
         self.angle += self.speed
-    
+
     def calc_result(self):
         box = 360/37
         a = box
-        i=0
+        i = 0
         while a < self.angle:
             a += box
-            i+=1
+            i += 1
         else:
             self.gi.outcome = pb.wheel[i]
             self.gi.previous_rolled_numbers_list.insert(0, self.gi.outcome)
             Pause_screen(self.screen, self.settings, self.gi)
-            
+
         print(self.gi.outcome)
 
     def blitme(self):

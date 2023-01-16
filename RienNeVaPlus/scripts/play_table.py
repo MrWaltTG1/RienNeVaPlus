@@ -18,18 +18,17 @@ class Play_field():
         self.cull_hitboxes()
 
     def update(self):
-        
+
         self.field_list = []
         x, y = pygame.mouse.get_pos()
         if pygame.Rect.collidepoint(self.play_table_rect, x, y):  # type: ignore
             self.field_list = gf.give_hovered_fields(
                 self.all_fields, self.all_hitbox_rects_dict)
-            
+
         for field in self.all_fields:
             if not field in self.gi.fields_list:
                 self.gi.fields_list.append(field)
         self.gi.hitboxes_dict = self.all_hitbox_rects_dict
-            
 
     def cull_hitboxes(self):
         self.all_hitbox_rects_dict = {}
@@ -55,7 +54,6 @@ class Play_field():
             else:
                 msg = "NaN"
             self.all_hitbox_rects_dict[msg] = field.hitbox_rect_dict
-
 
     def create_thirds_fields(self):
         msg_list = ["P12", "M12", "D12"]
@@ -273,7 +271,8 @@ class Thirds_field():
 
         # Create a Rect so the text can be centered
         self.rect = pygame.Rect(pos, (size[0], size[1]))
-        self.rect.topleft = self.points[1][0], self.points[1][1] + 1  # type: ignore
+        # type: ignore
+        self.rect.topleft = self.points[1][0], self.points[1][1] + 1
         self.rect.left += 1
         # Create text
         self.msg = msg

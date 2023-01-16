@@ -5,13 +5,11 @@ class Settings():
     def __init__(self) -> None:
         self.debug = False
 
-        self.screen_size = [1000, 800]
+        self.screen_size = [1280, 1024]
         self.field_x, self.field_y = 100, 100
         self.bg_color = (90, 67, 220)
-        self.bg_surf = pygame.surface.Surface(self.screen_size)
-        self.bg_surf.fill(self.bg_color)
-        self.bg_rect = pygame.rect.Rect(
-            (0, 0), self.screen_size)  # type: ignore
+        self.bg_surf = pygame.image.load("RienNeVaPlus/images/bg_green.png")
+        self.bg_rect = self.bg_surf.get_rect()
 
         self.single_field_width = 35
         self.single_field_height = 50

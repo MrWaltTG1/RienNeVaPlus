@@ -66,29 +66,31 @@ class Main_menu():
         button_pos = self.settings.start_button_pos
         button_size = self.settings.start_button_size
 
-        new_button = Button(self.settings, button_pos, button_size, msg="START")
+        new_button = Button(self.settings, button_pos,
+                            button_size, msg="START")
         self.button_list.append(new_button)
 
     def create_self(self):
         """Function to make itsself."""
         self.create_start_button()
         self.active = True
-        
+
     def create_preset_budget_buttons(self):
         size = (int(self.settings.screen_size[0] / 6), 80)
-        start_x, end_x, step_x = int(self.settings.screen_size[0] * 1/5), int(self.settings.screen_size[0] * 4/5), size[0] + 20
+        start_x, end_x, step_x = int(
+            self.settings.screen_size[0] * 1/5), int(self.settings.screen_size[0] * 4/5), size[0] + 20
         y = self.pop_up_list[-1].rect.bottom + 100
         text_dict = {
-            0 : "€10000",
-            1 : "€1000",
-            2 : "€500",
-            3 : "€100"
+            0: "€10000",
+            1: "€1000",
+            2: "€500",
+            3: "€100"
         }
         for i, x in enumerate(range(start_x, end_x, step_x)):
-                new_button = Button(self.settings, (x, y), size, msg=text_dict[i])
-                self.button_list.append(new_button)
-                if i == 3:
-                    break
+            new_button = Button(self.settings, (x, y), size, msg=text_dict[i])
+            self.button_list.append(new_button)
+            if i == 3:
+                break
 
     def update(self):
         if self.active:
@@ -99,12 +101,12 @@ class Main_menu():
                     # do button click
                     if len(self.button_list) > 1:
                         budget = button.msg[1:]
-                        pygame.event.post(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN, unicode= "/r"))
+                        pygame.event.post(pygame.event.Event(
+                            pygame.KEYDOWN, key=pygame.K_RETURN, unicode="/r"))
                         self.budget_number = int(budget)
                         self.button_list.clear()
                         self.gi.button_list.clear()
-                        
-                        
+
                     elif button == self.button_list[0]:
                         # The start button should be number one
                         self.create_pop_up_budget()
@@ -114,8 +116,7 @@ class Main_menu():
                         if not self.pop_up_list:
                             raise Exception(
                                 "The start button should be number one. But it isnt")
-                    
-                    
+
     def blitme(self):
         if self.active:
             # self.screen.blit(self.image_bg, self.rect)

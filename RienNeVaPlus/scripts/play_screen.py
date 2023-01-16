@@ -46,10 +46,10 @@ class Play_screen():
             pos[0] += int(size[0]*1.3)
             new_button = Button(self.settings, pos, size, image=text)
             self.button_list.append(new_button)
-        
+
     def create_back_button(self):
         text = "back"
-        pos = 50,50
+        pos = 50, 50
         size = [35, 35]
         new_button = Button(self.settings, pos, size, image=text)
         self.button_list.append(new_button)
@@ -101,10 +101,10 @@ class Play_screen():
 
             if self.board:
                 self.board.update()
-                
+
             if self.roulette_wheel:
                 self.roulette_wheel.update()
-                
+
             del self.text_list[1:]
             for i, number in enumerate(self.gi.previous_rolled_numbers_list):
                 pos = 900, 30 + i*30
@@ -116,10 +116,9 @@ class Play_screen():
             if self.budget != self.gi.personal_budget:
                 self.budget = self.gi.personal_budget
                 self.update_budget_text(self.budget)
-                
+
             if self.gi.personal_budget <= 0:
                 gf.game_over(self.screen, self.settings, self.gi)
-
 
     def update_chips(self):
         """Function that handles updating the chips."""
