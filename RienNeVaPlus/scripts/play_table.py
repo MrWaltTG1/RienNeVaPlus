@@ -77,11 +77,11 @@ class Play_field():
                 if i in pb.noir:
                     # If field is black
                     new_field = Single_field(
-                        size=size, color=(0, 0, 0), number=i, pos=pos, settings=self.settings)
+                        size=size, color=self.settings.color_dict["black"], number=i, pos=pos, settings=self.settings)
                 elif i in pb.rouge:
                     # If field is red
                     new_field = Single_field(
-                        size=size, color=(255, 0, 0), number=i, pos=pos, settings=self.settings)
+                        size=size, color=self.settings.color_dict["red"], number=i, pos=pos, settings=self.settings)
                 else:
                     new_field = None
                     print("Error: Single number is not black or red")
@@ -163,7 +163,7 @@ class Play_field():
             for hitbox in field.hitbox_rect_dict.values():
                 if hasattr(field, "points"):
                     pygame.draw.polygon(
-                        self.screen, (219, 207, 37), field.points, width=1)
+                        self.screen, (219, 207, 37), field.points, width=3)
                     # pygame.draw.rect(self.screen, (255,0,0),hitbox)
                 else:
                     pygame.draw.rect(
@@ -171,35 +171,31 @@ class Play_field():
 
 
 class Single_field(pygame.sprite.Sprite):
-    def __init__(self, *groups: pygame.sprite.AbstractGroup, **kwargs) -> None:
-        super().__init__(*groups)
-
+    def __init__(self, size, color, number, pos, settings) -> None:
+        self.settings = settings
+        self.image_list = []
         # Create color block
-        if kwargs["color"]:
-            self.image = pygame.Surface(kwargs["size"])
-            self.image.fill(kwargs["color"])
+        if color:
+            self.image = pygame.Surface(size)
+            self.image.fill(color)
             self.rect = self.image.get_rect()
-            self.rect.center = kwargs["pos"]
+            self.rect.center = pos
         else:
-            self.rect = pygame.Rect(kwargs["pos"], kwargs["size"])
+            self.rect = pygame.Rect(pos, size)
 
         # Create outline block
-        self.image_outline_rect = pygame.Rect(kwargs["pos"], kwargs["size"])
+        self.image_outline_rect = pygame.Rect(pos, size)
         self.image_outline_rect.center = self.rect.center
 
         # Create text and hitboxes
-        if "number" not in kwargs:
-            self.msg = ""
-            font_size = kwargs["settings"].font_size
-            self.hitbox_rect_dict = gf.create_hitboxes(self, center_only=True)
-        elif isinstance(kwargs["number"], int):
-            self.msg = str(kwargs["number"])
-            font_size = kwargs["settings"].font_size / 2
+        if isinstance(number, int):
+            self.msg = str(number)
+            font_size = settings.font_size
             self.hitbox_rect_dict = gf.create_hitboxes(self)
             self.msg_image, self.msg_image_rect = gf.create_text(
                 self.rect.center, self.msg, font_size, rotate=True)
         else:
-            self.msg = kwargs["number"]
+            self.msg = number
             self.hitbox_rect_dict = gf.create_hitboxes(self, center_only=True)
 
     def blitme(self, screen):
@@ -216,13 +212,14 @@ class Single_field(pygame.sprite.Sprite):
             points = ((self.rect.topright[0]-1, self.rect.topright[1]),
                       self.rect.center,
                       (self.rect.bottomright[0]-1, self.rect.bottomright[1]-1))
-            pygame.draw.lines(screen, (255, 255, 255), False, points)
+            pygame.draw.lines(screen, self.settings.color_dict["offwhite"], False, points, 3)
         else:
             raise AttributeError(self.rect)
+
         # Draw the outlining box
         pygame.draw.rect(
-            screen, (255, 255, 255),
-            self.image_outline_rect, width=1)
+            screen, self.settings.color_dict["offwhite"],
+            self.image_outline_rect, width=2)
 
 
 class Block():
@@ -254,7 +251,7 @@ class Block():
 
     def blitme(self, screen):
         pygame.draw.polygon(
-            screen, (255, 255, 255), self.points, width=1)
+            screen, (255, 255, 255), self.points, width=3)
         screen.blit(self.msg_image, self.msg_image_rect)
 
 
@@ -281,7 +278,7 @@ class Thirds_field():
         self.hitbox_rect_dict = gf.create_hitboxes(self, center_only=True)
 
     def blitme(self, screen):
-        pygame.draw.polygon(screen, (255, 255, 255), self.points, width=1)
+        pygame.draw.polygon(screen, (255, 255, 255), self.points, width=3)
         if hasattr(self, "msg_image"):
             screen.blit(
                 self.msg_image, self.msg_image_rect)
@@ -309,7 +306,7 @@ class Field_zero():
 
     def blitme(self, screen):
         pygame.draw.polygon(screen, (0, 150, 0), self.points)
-        pygame.draw.polygon(screen, (255, 255, 255), self.points, width=1)
+        pygame.draw.polygon(screen, (255, 255, 255), self.points, width=3)
 
         if hasattr(self, "msg_image"):
             screen.blit(

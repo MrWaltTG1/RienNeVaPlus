@@ -11,14 +11,26 @@ class Settings():
         self.bg_surf = pygame.image.load("RienNeVaPlus/images/bg_green.png")
         self.bg_rect = self.bg_surf.get_rect()
 
-        self.single_field_width = 35
-        self.single_field_height = 50
+        """PLAY TABLE SETTINGS"""
+        self.single_field_width = 50
+        self.single_field_height = 70
         self.single_field_size = [
             self.single_field_width, self.single_field_height]
         self.start_pos_play_table = int(
             self.bg_rect.width / 2), int(self.bg_rect.height / 2)
 
-        self.button_color = (0, 100, 100)
+        self.color_dict = {
+            "offwhite" : [250,250,250],
+            "red" : [224, 8, 11],
+            "black" : [10,10,10],
+            "dark_brown" : [60, 25, 18],
+            "yellow" : [243, 198, 32],
+            "yellow_faint" : [243, 198, 32],
+            "dark_green" : [1, 67, 30],
+            "light_green" : [1, 109, 41]
+        }
+
+        self.button_color = (0, 0, 0)
         self.button_color_hover = (0, 20, 20)
         self.font_size = 40
         self.font_color = (255, 255, 255)

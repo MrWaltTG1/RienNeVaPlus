@@ -20,6 +20,7 @@ class Game_info():
         self.info_fields_list = set()
         self.fields_list = list()
         self.hitboxes_dict = dict()
+        self.budget_bar = None
         self.winnings_screen = None
 
         self.all_chips_group_list = []
@@ -30,13 +31,14 @@ class Game_info():
         self.outcome = -1
 
         self.elements_dict = {
-            "buttons": self.button_list,
             "pop_ups": self.pop_up_list,
+            "buttons": self.button_list,
             "chips": self.all_chips_group_list,
             "info_fields": self.info_fields_list,
             "fields_list": self.fields_list,
             "hitboxes": self.hitboxes_dict,
-            "winnings_screen": self.winnings_screen
+            "winnings_screen": self.winnings_screen,
+            "budget_bar": self.budget_bar,
         }
 
         self.current_tick = pygame.time.get_ticks()
@@ -47,15 +49,22 @@ class Game_info():
         self.reset = False
 
     def update(self):
+        """Updates the game info with the current information"""
+        
+        """Elements in the order they are blitted to the screen"""
         self.elements_dict = {
-            "buttons": self.button_list,
             "pop_ups": self.pop_up_list,
+            "buttons": self.button_list,
             "chips": self.all_chips_group_list,
             "info_fields": self.info_fields_list,
             "fields_list": self.fields_list,
             "hitboxes": self.hitboxes_dict,
-            "winnings_screen": self.winnings_screen
+            "winnings_screen": self.winnings_screen,
+            "budget_bar": self.budget_bar,
         }
+        
+        if self.budget_bar:
+            self.budget_bar.update()
 
         self.current_tick = pygame.time.get_ticks()
 

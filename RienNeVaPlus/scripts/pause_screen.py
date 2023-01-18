@@ -11,13 +11,10 @@ class Pause_screen():
         self.gi = game_info
         self.active = True
         self.text_list = []
+        
+        self.image, self.rect = gf.get_darkened_screen_list(settings)
 
-        size = self.settings.screen_size
-        self.image = pygame.Surface(size)
-        self.image.fill((0, 0, 0))
-        self.image = pygame.Surface.convert_alpha(self.image)
-        self.image.set_alpha(120)
-        self.rect = self.image.get_rect()
+        
 
         if not game_over:
             self.gi.winnings_screen = self  # type: ignore
@@ -47,8 +44,8 @@ class Pause_screen():
             self.gi.placed_chips_list.clear()
             self.gi.winnings_screen = None
 
-    def blitme(self):
-        self.screen.blit(self.image, self.rect)
+    def blitme(self, screen):
+        screen.blit(self.image, self.rect)
 
         for text in self.text_list:
-            self.screen.blit(text[0], text[1])
+            screen.blit(text[0], text[1])

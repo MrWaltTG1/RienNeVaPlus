@@ -22,12 +22,12 @@ def update_screen(screen, settings: Settings, main_menu: Main_menu, play_screen:
         play_screen.blitme()
 
     for type, element_list in game_info.elements_dict.items():
-        if type == "buttons":
-            for button in element_list:
-                button.blitme(screen)
-        elif type == "pop_ups":
+        if type == "pop_ups":
             for pop_up in element_list:
                 pop_up.blitme(screen)
+        elif type == "buttons":
+            for button in element_list:
+                button.blitme(screen)
         elif type == "info_fields":
             for info_field in element_list:
                 info_field.blitme(screen)
@@ -37,9 +37,9 @@ def update_screen(screen, settings: Settings, main_menu: Main_menu, play_screen:
                     group.draw(screen)
                 except AttributeError:
                     pass
-        elif type == "winnings_screen":
+        elif type == "winnings_screen" or type == "budget_bar":
             if element_list:
-                element_list.blitme()
+                element_list.blitme(screen)
 
     pygame.display.flip()
 
@@ -95,7 +95,11 @@ def check_mouse_down_events(event, screen, settings: Settings, main_menu, play_s
                                 new_chip.reposition(
                                     hitbox.centerx, hitbox.centery)
                                 game_info.placed_chips_list.append(new_chip)
-                                reset_chip = False
+                                game_info.personal_budget -= new_chip.price
+                                if game_info.personal_budget < new_chip.price:
+                                    reset_chip = True
+                                else:
+                                    reset_chip = False
                                 do_break = True
                                 break
                         if do_break:
@@ -115,6 +119,7 @@ def check_mouse_down_events(event, screen, settings: Settings, main_menu, play_s
                             game_info.placed_chips_list.remove(placed_chip)
                             game_info.placed_chips_undo_list.append(
                                 [placed_chip])
+                            game_info.personal_budget += placed_chip.price
                             break
 
                 """Create a cursor chip"""
@@ -158,18 +163,17 @@ def spin_wheel():
     return outcome
 
 
-def create_text(pos, msg: str, font_size: int, rotate=False, font_color=(255, 255, 255)):
+def create_text(pos, msg: str, font_size: int, rotate=False, font_color=None):
+    if not font_color:
+        font_color = (250, 250, 250)
     """Create text inside the box"""
     font = pygame.font.SysFont("Consolas", int(font_size))
     msg_image = font.render(msg, True, font_color)
-    msg_image_rect = msg_image.get_rect()
     if rotate:
         msg_image = pygame.transform.rotate(msg_image, 90)
+    msg_image_rect = msg_image.get_rect()
     msg_image_rect.center = pos  # type: ignore
 
-    if len(msg) == 1:
-        msg_image_rect.centery += 7
-        msg_image_rect.centerx -= 2
 
     return msg_image, msg_image_rect
 
@@ -360,6 +364,7 @@ def utility_buttons_action(game_info: Game_info, button_function: str):
                 chip = game_info.placed_chips_list[-1]
                 game_info.placed_chips_undo_list.append([chip])
                 game_info.placed_chips_list.remove(chip)
+                game_info.personal_budget += chip.price
                 chip_list.append(chip)
 
         elif button_function == "redo":
@@ -369,6 +374,7 @@ def utility_buttons_action(game_info: Game_info, button_function: str):
                 for chip in temp_chip_list:
                     game_info.placed_chips_list.append(chip)
                     chip_list.append(chip)
+                    game_info.personal_budget -= chip.price
                 remove = False
 
         elif button_function == "cross":
@@ -376,6 +382,7 @@ def utility_buttons_action(game_info: Game_info, button_function: str):
                 for chip in game_info.placed_chips_list:
                     temp_chip_list.append(chip)
                     chip_list.append(chip)
+                    game_info.personal_budget += chip.price
                 game_info.placed_chips_undo_list.append(temp_chip_list)
                 game_info.placed_chips_list.clear()
 
@@ -385,3 +392,24 @@ def utility_buttons_action(game_info: Game_info, button_function: str):
 def game_over(screen, settings: Settings, game_info: Game_info):
     game_over = Pause_screen(screen, settings, game_info, True)
     game_info.winnings_screen = game_over  # type: ignore
+
+def get_darkened_screen_list(settings):
+    size = settings.screen_size
+    image = pygame.Surface(size)
+    image.fill((0, 0, 0))
+    image = pygame.Surface.convert_alpha(image)
+    image.set_alpha(120)
+    rect = image.get_rect()
+    
+    return image, rect
+
+def get_shadow_blit(msg, msg_image_rect, font_type, font_size):
+        dropshadow_offset = 1 + (font_size // 20)
+        font = pygame.font.SysFont(font_type, font_size)
+        font_color_shad = (0, 0, 0)
+        msg_image_shad = font.render(msg, True, font_color_shad)
+        msg_image_shad_rect = msg_image_shad.get_rect()
+        msg_image_shad_rect.center = msg_image_rect.centerx - \
+            dropshadow_offset, msg_image_rect.centery + dropshadow_offset
+            
+        return msg_image_shad,msg_image_shad_rect

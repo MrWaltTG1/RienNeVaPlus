@@ -1,7 +1,7 @@
 import game_functions as gf
 import pygame
 from chips import Chip
-from elements import Button, Info_field, Pop_up
+from elements import Button, Info_field, Pop_up, Budget_bar
 from play_table import Play_field
 from roulette_wheel import Roulette_wheel
 from settings import Settings
@@ -35,7 +35,7 @@ class Play_screen():
         self.create_budget_text(self.budget, self.settings.bg_rect.bottomright)
         self.create_placement_buttons()
         self.create_back_button()
-
+        Budget_bar(self.settings, self.gi)
         self.active = True
 
     def create_placement_buttons(self):
@@ -86,9 +86,9 @@ class Play_screen():
             for button in self.button_list:
                 self.gi.button_list.add(button)
                 if button.clicked == True:
-                    if button.msg != "back":
+                    if button.image_msg != "back":
                         chip_list, remove = gf.utility_buttons_action(
-                            self.gi, button.msg)
+                            self.gi, button.image_msg)
                         if remove:
                             for chip in chip_list:
                                 self.chip_group_placed.remove(chip)
@@ -117,7 +117,7 @@ class Play_screen():
                 self.budget = self.gi.personal_budget
                 self.update_budget_text(self.budget)
 
-            if self.gi.personal_budget <= 0:
+            if self.gi.personal_budget <= 0 and not self.gi.placed_chips_list:
                 gf.game_over(self.screen, self.settings, self.gi)
 
     def update_chips(self):

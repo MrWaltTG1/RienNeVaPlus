@@ -1,5 +1,6 @@
 import pygame
 from elements import Button, Pop_up
+import game_functions as gf
 
 
 class Main_menu():
@@ -9,39 +10,50 @@ class Main_menu():
         self.screen = screen
         self.settings = settings
         self.gi = game_info
-        self.button_list, self.pop_up_list = [], []
+        self.button_list, self.pop_up_list, self.image_list = [], [], []
         self.active = False
         self.budget_pop_up_active = False
 
         # Form the screen
         try:
             self.og_image_bg = pygame.image.load(
-                "RienNeVaPlus/images/main_menu_bg.bmp")
-            self.image_bg = pygame.transform.scale(
-                self.og_image_bg, self.settings.screen_size)
+                "RienNeVaPlus/images/french_roulette.png")
+            size = self.og_image_bg.get_size()
+            self.image_bg = pygame.transform.smoothscale(
+                self.og_image_bg, (size[0] * 0.9, size[1] * 0.9))
         except FileNotFoundError:
             self.image_bg = pygame.Surface(self.settings.screen_size)
         finally:
             self.rect = self.image_bg.get_rect()
-            self.rect.topleft = (0, 0)
+            self.rect.centerx = self.settings.bg_rect.centerx
+            self.rect.top += 40
 
     def create_pop_up_budget(self):
-        new_popup = Pop_up(self.settings, (500, 400), (300, 200))
+        self.budget_pop_up_active = True
+        size = self.settings.screen_size
+        pos = size[0] / 2, size[1] / 1.5
+        new_popup = Pop_up(self.settings, pos, (size[0] * 0.7, size[1] * 0.4), (0,0,0, 160))
         new_popup.prep_msg("Enter your budget:",
-                           (0, 0, 0), 40, pos=(10, 10))
+                           (221, 151, 0), 40, pos=(50, 50))
         self.budget_number = 0
         new_popup.prep_msg("")
         self.pop_up_list.append(new_popup)
         self.gi.pop_up_list.update(self.pop_up_list)
-        self.budget_pop_up_active = True
+        self.update_budget_pop_up(pygame.event.Event(pygame.KEYDOWN, {'unicode': '0', 'key': 1073741922, 'mod': 4096, 'scancode': 98, 'window': None}))
+
 
     def update_budget_pop_up(self, event: pygame.event.Event) -> None:
         """Function to update the budget pop up."""
         pop_up = self.pop_up_list[0]
-
+        font_color = (255, 255, 255)
         if event.unicode.isdigit():
-            self.budget_number = int(
-                str(self.budget_number) + str(event.unicode))
+            if self.budget_number < 1000000:
+                self.budget_number = int(
+                    str(self.budget_number) + str(event.unicode))
+                if self.budget_number > 1000000:
+                    self.budget_number = 1000000
+            elif self.budget_number == 1000000:
+                pop_up.start_shake()
 
         elif event.key == pygame.K_BACKSPACE:
             if len(str(self.budget_number)) > 1:
@@ -50,6 +62,7 @@ class Main_menu():
                 self.budget_number = 0
 
         elif event.key == pygame.K_RETURN:
+            """ When the user presses the ENTER key do:"""
             self.gi.current_stage = 1
             self.pop_up_list.remove(pop_up)
             self.gi.pop_up_list.remove(pop_up)
@@ -59,15 +72,16 @@ class Main_menu():
             self.active = False
 
         text = "€" + "{:,.2f}".format(self.budget_number)
-        pop_up.msg_image_list.pop(1)
-        pop_up.prep_msg(text, font_color=(0, 0, 0))
+        del pop_up.msg_image_list[3:]
+        pop_up.prep_msg(text, font_color=font_color, center=True)
+
 
     def create_start_button(self):
-        button_pos = self.settings.start_button_pos
-        button_size = self.settings.start_button_size
+        button_pos = (self.settings.screen_size[0] / 2, self.settings.screen_size[1] /1.5)
+        button_size = (400,200)
 
         new_button = Button(self.settings, button_pos,
-                            button_size, msg="START")
+                            button_size, msg="START", image="start")
         self.button_list.append(new_button)
 
     def create_self(self):
@@ -76,10 +90,11 @@ class Main_menu():
         self.active = True
 
     def create_preset_budget_buttons(self):
-        size = (int(self.settings.screen_size[0] / 6), 80)
+        pop_up = self.pop_up_list[-1]
+        size = (int(pop_up.static_rect.w / 5), 80)
         start_x, end_x, step_x = int(
-            self.settings.screen_size[0] * 1/5), int(self.settings.screen_size[0] * 4/5), size[0] + 20
-        y = self.pop_up_list[-1].rect.bottom + 100
+            pop_up.static_rect.left + (size[0]/2) + int(size[0] / 5)), int(pop_up.static_rect.right -10), size[0] + int(size[0] / 5)
+        y = pop_up.static_rect.bottom - 100
         text_dict = {
             0: "€10000",
             1: "€1000",
@@ -87,7 +102,7 @@ class Main_menu():
             3: "€100"
         }
         for i, x in enumerate(range(start_x, end_x, step_x)):
-            new_button = Button(self.settings, (x, y), size, msg=text_dict[i])
+            new_button = Button(self.settings, (x, y), size, msg=text_dict[i], image="start")
             self.button_list.append(new_button)
             if i == 3:
                 break
@@ -116,8 +131,17 @@ class Main_menu():
                         if not self.pop_up_list:
                             raise Exception(
                                 "The start button should be number one. But it isnt")
+            for pop_up in self.pop_up_list:
+                pop_up.update()
+                            
+        
+    def create_box(self):
+        dark_surf, dark_rect = gf.get_darkened_screen_list(self.settings)
+        self.image_list.append((dark_surf, dark_rect))
 
     def blitme(self):
         if self.active:
-            # self.screen.blit(self.image_bg, self.rect)
-            pass
+            self.screen.blit(self.image_bg, self.rect)
+                
+            for image, rect in self.image_list:
+                self.screen.blit(image, rect)
