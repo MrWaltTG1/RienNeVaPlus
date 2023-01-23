@@ -58,19 +58,37 @@ class Play_screen():
         """Function to create chips"""
 
         if self.board:
-            x_start = self.board.play_table_rect.right - 100
-            x_step = -45
-            x_stop = x_start - abs(x_step) * 6
-            x_range = range(x_start, x_stop, x_step)
+            min_x = self.board.play_table_rect.right - 200
+            max_x = min_x + 60
 
-            y = self.board.play_table_rect.bottom + 30
+            min_y = self.board.play_table_rect.bottom - 10
+            y_step = 100
+            max_y = min_y + y_step * 3
+            y_range = range(min_y, max_y, y_step)
 
             color_list = list(self.settings.chip_color_dict.values())
-
-            for color, x in zip(color_list, x_range):
-                new_chip = Chip(color=color, settings=self.settings)
-                new_chip.rect.center = (x, y)
-                self.chip_group.add(new_chip)
+            i=0
+            for y in y_range:
+                try:
+                    new_chip = Chip(color=color_list[i], settings=self.settings)
+                    new_chip.rect.center = (min_x, y)
+                    self.chip_group.add(new_chip)
+                    i+=1
+                except IndexError:
+                    break
+                
+            min_y += 20
+            max_y = min_y + y_step * 3
+            y_range = range(min_y, max_y, y_step)
+            for y in y_range:
+                try:
+                    new_chip = Chip(color=color_list[i], settings=self.settings)
+                    new_chip.rect.center = (max_x, y)
+                    self.chip_group.add(new_chip)
+                    i+=1
+                except IndexError:
+                    break
+            
             self.gi.all_chips_group_list = self.chip_all_groups_list
 
     def update(self):

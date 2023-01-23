@@ -91,7 +91,7 @@ def check_mouse_down_events(event, screen, settings: Settings, main_menu, play_s
                             if check_hitbox_mouse_collision(hitbox):
                                 new_chip = Chip(game_info.all_chips_group_list[2], settings=settings,
                                                 color=game_info.cursor_chip.color,
-                                                resize_multiplier=0.5)
+                                                resize_multiplier=0.3)
                                 new_chip.reposition(
                                     hitbox.centerx, hitbox.centery)
                                 game_info.placed_chips_list.append(new_chip)
@@ -284,16 +284,6 @@ def give_hovered_fields(all_fields: list, all_hitboxes: dict):
                     field_list.append(field)
 
     return field_list
-
-
-def make_field_glow(screen: pygame.Surface, field):
-    """Draws a 'glow' around a field."""
-    if hasattr(field, "points"):
-        pygame.draw.polygon(
-            screen, (219, 207, 37), field.points, width=5)
-    else:
-        pygame.draw.rect(
-            screen, (219, 207, 37), field.rect, width=5)
 
 
 def create_info_field(settings, game_info, size=(0, 0), msg=None, color=None, id=None, chip=None):

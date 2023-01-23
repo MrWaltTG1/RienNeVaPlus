@@ -19,6 +19,7 @@ class Game_info():
         self.pop_up_list = set()
         self.info_fields_list = set()
         self.fields_list = list()
+        self.selected_fields_list = set()
         self.hitboxes_dict = dict()
         self.budget_bar = None
         self.winnings_screen = None
@@ -36,6 +37,7 @@ class Game_info():
             "chips": self.all_chips_group_list,
             "info_fields": self.info_fields_list,
             "fields_list": self.fields_list,
+            "selected_fields": self.selected_fields_list,
             "hitboxes": self.hitboxes_dict,
             "winnings_screen": self.winnings_screen,
             "budget_bar": self.budget_bar,
@@ -50,7 +52,7 @@ class Game_info():
 
     def update(self):
         """Updates the game info with the current information"""
-        
+
         """Elements in the order they are blitted to the screen"""
         self.elements_dict = {
             "pop_ups": self.pop_up_list,
@@ -58,11 +60,12 @@ class Game_info():
             "chips": self.all_chips_group_list,
             "info_fields": self.info_fields_list,
             "fields_list": self.fields_list,
+            "selected_fields": self.selected_fields_list,
             "hitboxes": self.hitboxes_dict,
             "winnings_screen": self.winnings_screen,
             "budget_bar": self.budget_bar,
         }
-        
+
         if self.budget_bar:
             self.budget_bar.update()
 
@@ -82,3 +85,9 @@ class Game_info():
             for chip in self.all_chips_group_list[2]:
                 if not chip in self.placed_chips_list:
                     self.all_chips_group_list[2].remove(chip)
+
+        for field in self.fields_list:
+            if field in self.selected_fields_list:
+                field.selected = True
+            else:
+                field.selected = False

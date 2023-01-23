@@ -24,6 +24,8 @@ class Play_field():
         if pygame.Rect.collidepoint(self.play_table_rect, x, y):  # type: ignore
             self.field_list = gf.give_hovered_fields(
                 self.all_fields, self.all_hitbox_rects_dict)
+            self.gi.selected_fields_list = set()
+            self.gi.selected_fields_list.update(self.field_list)
 
         for field in self.all_fields:
             if not field in self.gi.fields_list:
@@ -98,7 +100,7 @@ class Play_field():
             self.single_field_list[0].rect.bottomleft)
 
         self.play_table_rect = pygame.rect.Rect(
-            start_pos, (size[0]*15, size[1]*5))
+            start_pos, (size[0]*15, size[1]*7))
         self.play_table_rect.center = self.singles_combined_rect.center
 
         # Create field zero
@@ -130,8 +132,7 @@ class Play_field():
                     "ROUGE", "PASSE 19-36", "PAIR", "NOIR"]
         self.block_list = []
         for msg, pos in zip(msg_list, pos_list):
-            new_block = Block(
-                pos, settings=self.settings, msg=msg)
+            new_block = Block(self.settings, pos, msg)
             self.block_list.append(new_block)
 
         self.block_list[0].points[1][0] += int(size[0]/2)
@@ -153,27 +154,26 @@ class Play_field():
         for field in self.thirds_fields_list:
             field.blitme(self.screen)
 
-        if len(self.field_list) > 0:
-            for field in self.field_list:
-                gf.make_field_glow(self.screen, field)
-
     def blit_hitboxes(self):
         """Draw the hidden hitboxes"""
         for field in self.all_fields:
             for hitbox in field.hitbox_rect_dict.values():
                 if hasattr(field, "points"):
                     pygame.draw.polygon(
-                        self.screen, (219, 207, 37), field.points, width=3)
+                        self.screen, (219, 207, 37, 100), field.points, width=3)
                     # pygame.draw.rect(self.screen, (255,0,0),hitbox)
                 else:
                     pygame.draw.rect(
-                        self.screen, (219, 207, 37), hitbox, width=1)
+                        self.screen, (219, 207, 37, 100), hitbox, width=1)
 
 
 class Single_field(pygame.sprite.Sprite):
     def __init__(self, size, color, number, pos, settings) -> None:
         self.settings = settings
         self.image_list = []
+        self.selected = False
+        self.glow = 0.5
+        self.alpha = 160
         # Create color block
         if color:
             self.image = pygame.Surface(size)
@@ -203,16 +203,34 @@ class Single_field(pygame.sprite.Sprite):
         # draws the colored background in
         if hasattr(self, "image"):
             screen.blit(self.image, self.rect)
+
+
+        if self.selected:
+            if self.alpha > 160:
+                self.glow = -0.7
+            if self.alpha < 100:
+                self.glow = 0.7
+            self.alpha += self.glow
+            color = self.settings.color_dict["yellow"] + [int(self.alpha)]
+            shape_surf = pygame.Surface(
+                pygame.Rect(self.rect).size, pygame.SRCALPHA)
+            pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
+            screen.blit(shape_surf, self.rect)
+        
         # Draws the text in
         if hasattr(self, "msg_image"):
             screen.blit(
                 self.msg_image, self.msg_image_rect)
         # If theres no text then draw a triangle
         elif self.rect:
-            points = ((self.rect.topright[0]-1, self.rect.topright[1]),
-                      self.rect.center,
-                      (self.rect.bottomright[0]-1, self.rect.bottomright[1]-1))
-            pygame.draw.lines(screen, self.settings.color_dict["offwhite"], False, points, 3)
+            points = ((self.rect.topright[0]-3, self.rect.topright[1]),
+                      (self.rect.centerx - 8, self.rect.centery),
+                      (self.rect.bottomright[0]-3, self.rect.bottomright[1]),
+                      (self.rect.topright[0]-3, self.rect.topright[1]),
+                      (self.rect.topleft),
+                      (self.rect.topright[0]-1, self.rect.topright[1]))
+            pygame.draw.lines(
+                screen, self.settings.color_dict["offwhite"], False, points, 3)
         else:
             raise AttributeError(self.rect)
 
@@ -223,19 +241,23 @@ class Single_field(pygame.sprite.Sprite):
 
 
 class Block():
-    def __init__(self, pos: list, *args, **kwargs) -> None:
+    def __init__(self, settings, pos: list, msg) -> None:
         # Create sideline blocks
-        size = kwargs["settings"].single_field_size
-        self.msg = str(kwargs["msg"])
+        self.settings = settings
+        size = settings.single_field_size
+        self.msg = str(msg)
+        self.msg_list = self.msg.split()
+        self.msg_image_list = []
         startx, starty = pos
         self.points = [
-            [startx, starty],
-            [startx, starty - size[1]],
-            [startx + size[0]*4-1, starty - size[1]],
-            [startx + size[0]*4-1, starty]]
+            [startx,                 starty],
+            [startx,                 starty - size[1]],
+            [startx + size[0]*4 - 1, starty - size[1]],
+            [startx + size[0]*4 - 1, starty]]
 
         # Create a Rect so the text can be centered
         if self.msg == "NOIR":
+            # Make the black block smaller so it doesnt overlap thirds on the right side
             size_magnitude = 3.5
         else:
             size_magnitude = 4
@@ -243,16 +265,34 @@ class Block():
         self.rect.bottomleft = pos  # type: ignore
 
         # Create text
-        self.msg_image, self.msg_image_rect = gf.create_text(
-            self.rect.center, self.msg, font_size=20)
+        font_size = settings.font_size * 0.8
+        if len(self.msg_list) == 1:
+            msg_image, msg_image_rect = gf.create_text(
+                self.rect.center, self.msg, font_size=font_size)
+            self.msg_image_list.append((msg_image, msg_image_rect))
+        else:
+            text_pos = [self.rect.centerx, self.rect.centery]
+            for msg in self.msg_list:
+                msg_image, msg_image_rect = gf.create_text(
+                    text_pos, msg, font_size=font_size)
+                msg_image_rect.midbottom = text_pos  # type: ignore
+                text_pos[1] += msg_image_rect.height
+                self.msg_image_list.append((msg_image, msg_image_rect))
 
         # Create hitboxes
         self.hitbox_rect_dict = gf.create_hitboxes(self, center_only=True)
 
     def blitme(self, screen):
+        if self.msg == "NOIR":
+            pygame.draw.polygon(
+                screen, self.settings.color_dict["black"], self.points)
+        elif self.msg == "ROUGE":
+            pygame.draw.polygon(
+                screen, self.settings.color_dict["red"], self.points)
         pygame.draw.polygon(
             screen, (255, 255, 255), self.points, width=3)
-        screen.blit(self.msg_image, self.msg_image_rect)
+        for surf, rect in self.msg_image_list:
+            screen.blit(surf, rect)
 
 
 class Thirds_field():
@@ -262,15 +302,14 @@ class Thirds_field():
         startx, starty = pos
         self.points = [
             [startx, starty],
-            [startx + int(size[0]/5.5), starty - size[1]],
-            [startx + size[0]-1 + int(size[0]/5.5), starty - size[1]],
-            [startx + size[0]-1, starty]]
+            [startx + int(size[0]/6), starty - size[1]],
+            [startx + size[0] + int(size[0]/6), starty - size[1]],
+            [startx + size[0], starty]]
 
         # Create a Rect so the text can be centered
         self.rect = pygame.Rect(pos, (size[0], size[1]))
         # type: ignore
-        self.rect.topleft = self.points[1][0], self.points[1][1] + 1
-        self.rect.left += 1
+        self.rect.topleft = self.points[1][0], self.points[1][1]
         # Create text
         self.msg = msg
         self.msg_image, self.msg_image_rect = gf.create_text(
@@ -287,6 +326,10 @@ class Thirds_field():
 class Field_zero():
     def __init__(self, settings, pos) -> None:
         size = settings.single_field_size
+        self.settings = settings
+        self.selected = False
+        self.glow = 0.7
+        self.alpha = 60
         startx, starty = pos
         self.points = [
             [startx,                            starty],
@@ -302,12 +345,30 @@ class Field_zero():
         self.msg = "0"
         self.hitbox_rect_dict = gf.create_hitboxes(self, center_only=True)
         self.msg_image, self.msg_image_rect = gf.create_text(
-            self.rect.center, self.msg, 60, True)
+            self.rect.center, self.msg, settings.font_size*1.7, True)
+        self.msg_image_rect.centerx += 5
 
     def blitme(self, screen):
         pygame.draw.polygon(screen, (0, 150, 0), self.points)
-        pygame.draw.polygon(screen, (255, 255, 255), self.points, width=3)
 
+        if self.selected:
+            if self.alpha > 140:
+                self.glow = -0.7
+            if self.alpha < 60:
+                self.glow = 0.7
+            self.alpha += self.glow
+            color = self.settings.color_dict["yellow"] + [int(self.alpha)]
+            lx, ly = zip(*self.points)
+            min_x, min_y, max_x, max_y = min(lx), min(ly), max(lx), max(ly)
+            target_rect = pygame.Rect(
+                min_x, min_y, max_x - min_x, max_y - min_y)
+            shape_surf = pygame.Surface(target_rect.size, pygame.SRCALPHA)
+            pygame.draw.polygon(shape_surf, color, [
+                                (x - min_x, y - min_y) for x, y in self.points])
+            screen.blit(shape_surf, target_rect)
+
+        pygame.draw.polygon(screen, (255, 255, 255), self.points, width=3)
+        
         if hasattr(self, "msg_image"):
             screen.blit(
                 self.msg_image, self.msg_image_rect)

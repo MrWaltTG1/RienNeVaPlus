@@ -225,32 +225,33 @@ class Info_field():
 
 class Budget_bar():
     """The budget bar object"""
+
     def __init__(self, settings, game_info):
         self.settings, self.gi = settings, game_info
         self.msg_image_list = []
         self.change_budget = False
-        
+
         w, h = settings.screen_size[0], 50
         self.rect = pygame.Rect((0, 0), (w, h))
         self.rect.bottom = self.settings.bg_rect.bottom
         self.budget = self.gi.personal_budget
         text = "€" + "{:,.2f}".format(self.budget)
-        
+
         surfs, rects = self.prep_msg(text, "right")
         for surf, rect in zip(surfs, rects):
             self.msg_image_list.append((surf, rect))
         self.gi.budget_bar = self
-        
+
     def prep_msg(self, msg: str, pos, font_color=None):
         """Returns an image and a rect of a given message plus its shadow"""
         font_type = self.settings.font_type
         font_size = int(self.settings.font_size / 1.5)
         if not font_color:
             font_color = (255, 255, 255)
-        
+
         font = pygame.font.SysFont(font_type, font_size)
         surf = font.render(msg, True, font_color)
-        rect = surf.get_rect(centery = self.rect.centery - 5)
+        rect = surf.get_rect(centery=self.rect.centery - 5)
         if isinstance(pos, str):
             if pos == "right":
                 rect.right = self.rect.right - 5
@@ -260,9 +261,10 @@ class Budget_bar():
             if len(pos) > 1:
                 rect.center = pos
             else:
-                rect.centerx=pos
-        
-        shadow_surf, shadow_rect = gf.get_shadow_blit(msg, rect, font_type, font_size)
+                rect.centerx = pos
+
+        shadow_surf, shadow_rect = gf.get_shadow_blit(
+            msg, rect, font_type, font_size)
         return (shadow_surf, surf), (shadow_rect, rect)
 
     def update(self):
@@ -272,7 +274,7 @@ class Budget_bar():
             self.msg_image_list.clear()
             for surf, rect in zip(surfs, rects):
                 self.msg_image_list.append((surf, rect))
-                
+
             self.update_budget(self.budget, self.gi.personal_budget)
             self.budget = self.gi.personal_budget
         if self.change_budget:
@@ -280,12 +282,12 @@ class Budget_bar():
                 if text[1].centery < self.msg_image_list[1][1].centery:
                     self.y_offset += 0.01
                     text[1].centery += self.y_offset
-                    new_alpha = text[0].get_alpha() - (self.y_offset* 2)
+                    new_alpha = text[0].get_alpha() - (self.y_offset * 2)
                     text[0].set_alpha(new_alpha)
                 else:
                     del self.msg_image_list[2:]
                     self.change_budget = False
-    
+
     def update_budget(self, old_budget, new_budget):
         self.change_budget = True
         if old_budget < new_budget:
@@ -296,9 +298,10 @@ class Budget_bar():
             font_color = self.settings.color_dict["red"].copy()
             font_color.append(255)
         else:
+            font_color = [255, 255, 255, 255]
             print("No change in budget")
         price_diff = old_budget - new_budget
-        
+
         text = "€" + "{:,.2f}".format(abs(price_diff))
         self.y_offset = 0
         pos = self.msg_image_list[0][1].centerx, self.msg_image_list[0][1].centery - 50
@@ -307,7 +310,7 @@ class Budget_bar():
             self.msg_image_list.append((surf, rect))
 
     def blitme(self, screen):
-        pygame.draw.rect(screen, (0,0,0), self.rect)
+        pygame.draw.rect(screen, (0, 0, 0), self.rect)
 
         for surf, rect in self.msg_image_list:
             screen.blit(surf, rect)

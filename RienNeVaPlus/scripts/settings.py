@@ -13,7 +13,7 @@ class Settings():
 
         """PLAY TABLE SETTINGS"""
         self.single_field_width = 50
-        self.single_field_height = 70
+        self.single_field_height = 80
         self.single_field_size = [
             self.single_field_width, self.single_field_height]
         self.start_pos_play_table = int(
@@ -38,9 +38,10 @@ class Settings():
 
         self.pop_up_bg_color = (255, 255, 255)
 
+        self.chip_size = [115, 115]
         self.chip_color_dict = {
             'BLUE': (50, 50, 255),
-            'RED': (255, 50, 50),
+            'RED': (200, 50, 50),
             'GREEN': (50, 255, 50),
             'BLACK': (0, 0, 0),
             'PURPLE': (153, 50, 153),

@@ -11,7 +11,7 @@ class Chip(pygame.sprite.Sprite):
         self.original_image = pygame.image.load(
             "RienNeVaPlus/images/chip_greyed.bmp")
 
-        self.size = [40*resize_multiplier, 40*resize_multiplier]
+        self.size = [settings.chip_size[0]*resize_multiplier, settings.chip_size[1]*resize_multiplier]
         self.image = pygame.transform.smoothscale(
             self.original_image, self.size)
         # Color the chip
