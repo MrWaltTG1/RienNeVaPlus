@@ -14,9 +14,9 @@ class Roulette_wheel():
 
         self.original_image = pygame.image.load(
             "RienNeVaPlus/images/roulette_wheel.bmp")
-        self.size = (300, 300)
+        self.size = (500, 500)
         self.pos = (
-            200, (int(self.settings.screen_size[1] / 2)) - self.settings.single_field_height)
+            280, (int(self.settings.screen_size[1] / 2)) - self.settings.single_field_height)
 
         self.image, self.rect = self.get_image(
             self.original_image, self.size, self.pos)

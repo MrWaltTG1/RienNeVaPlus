@@ -34,10 +34,12 @@ def update_screen(screen, settings: Settings, main_menu: Main_menu, play_screen:
         elif type == "chips":
             for group in element_list:
                 try:
+                    if group:
+                        for sprite in group:
+                            sprite.draw(screen)
+                except TypeError:
                     group.draw(screen)
-                except AttributeError:
-                    pass
-        elif type == "winnings_screen" or type == "budget_bar":
+        elif type == "winnings_screen" or type == "budget_bar" or type == "tabel":
             if element_list:
                 element_list.blitme(screen)
 
@@ -89,7 +91,7 @@ def check_mouse_down_events(event, screen, settings: Settings, main_menu, play_s
                     for hitbox_dict in game_info.hitboxes_dict.values():
                         for hitbox in hitbox_dict.values():
                             if check_hitbox_mouse_collision(hitbox):
-                                new_chip = Chip(game_info.all_chips_group_list[2], settings=settings,
+                                new_chip = Chip(game_info.all_chips_group_list[1], settings=settings,
                                                 color=game_info.cursor_chip.color,
                                                 resize_multiplier=0.3)
                                 new_chip.reposition(
@@ -127,7 +129,8 @@ def check_mouse_down_events(event, screen, settings: Settings, main_menu, play_s
                     for chip in chip_list:
                         if chip.rect.collidepoint(x, y) and chip.price <= game_info.personal_budget:
                             new_chip = Chip(settings=settings,
-                                            color=chip.color, resize_multiplier=0.5)
+                                            color=chip.color, resize_multiplier=0.5, shadow=True)
+                            new_chip.reposition(x, y)
                             game_info.cursor_chip = new_chip  # type: ignore
 
                 """Set button state to true when clicked"""

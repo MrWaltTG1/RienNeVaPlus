@@ -28,6 +28,7 @@ class Game_info():
         self.cursor_chip = None
         self.placed_chips_list = []
         self.placed_chips_undo_list = []
+        self.tabel = None
 
         self.outcome = -1
 
@@ -41,6 +42,7 @@ class Game_info():
             "hitboxes": self.hitboxes_dict,
             "winnings_screen": self.winnings_screen,
             "budget_bar": self.budget_bar,
+            "tabel": self.tabel,
         }
 
         self.current_tick = pygame.time.get_ticks()
@@ -64,6 +66,7 @@ class Game_info():
             "hitboxes": self.hitboxes_dict,
             "winnings_screen": self.winnings_screen,
             "budget_bar": self.budget_bar,
+            "tabel": self.tabel,
         }
 
         if self.budget_bar:
@@ -78,13 +81,13 @@ class Game_info():
             # Index 0 is the chip group that is clickable
             """This doesnt change"""
             # Index 1 is the chip that is following the cursor
-            if self.all_chips_group_list[1] != self.cursor_chip:
-                self.all_chips_group_list[1] = self.cursor_chip
+            if self.all_chips_group_list[2] != self.cursor_chip:
+                self.all_chips_group_list[2] = self.cursor_chip
 
             # Index 2 is placed chips group
-            for chip in self.all_chips_group_list[2]:
+            for chip in self.all_chips_group_list[1]:
                 if not chip in self.placed_chips_list:
-                    self.all_chips_group_list[2].remove(chip)
+                    self.all_chips_group_list[1].remove(chip)
 
         for field in self.fields_list:
             if field in self.selected_fields_list:

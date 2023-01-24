@@ -8,7 +8,7 @@ class Settings():
         self.screen_size = [1280, 1024]
         self.field_x, self.field_y = 100, 100
         self.bg_color = (90, 67, 220)
-        self.bg_surf = pygame.image.load("RienNeVaPlus/images/bg_green.png")
+        self.bg_surf = pygame.image.load("RienNeVaPlus/images/bg_green_felt.png")
         self.bg_rect = self.bg_surf.get_rect()
 
         """PLAY TABLE SETTINGS"""

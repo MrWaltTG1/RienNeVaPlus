@@ -11,16 +11,15 @@ class Pause_screen():
         self.gi = game_info
         self.active = True
         self.text_list = []
-        
-        self.image, self.rect = gf.get_darkened_screen_list(settings)
 
-        
+        self.image, self.rect = gf.get_darkened_screen_list(settings)
 
         if not game_over:
             self.gi.winnings_screen = self  # type: ignore
             returns = gf.check_winnings(self.gi)
             self.gi.returns = returns
-            self.gi.personal_budget += returns
+            if returns > 1:
+                self.gi.personal_budget += returns
 
             self.text_creator(str(self.gi.outcome))
             self.text_creator("$" + str(self.gi.returns))

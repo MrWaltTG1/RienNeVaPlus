@@ -5,7 +5,7 @@ from elements import Button, Info_field, Pop_up, Budget_bar
 from play_table import Play_field
 from roulette_wheel import Roulette_wheel
 from settings import Settings
-
+from number_tabel import Tabel
 
 class Play_screen():
     """Creates the play screen"""
@@ -36,6 +36,7 @@ class Play_screen():
         self.create_placement_buttons()
         self.create_back_button()
         Budget_bar(self.settings, self.gi)
+        Tabel(self.settings, self.gi)
         self.active = True
 
     def create_placement_buttons(self):
@@ -59,7 +60,7 @@ class Play_screen():
 
         if self.board:
             min_x = self.board.play_table_rect.right - 200
-            max_x = min_x + 60
+            max_x = min_x + 80
 
             min_y = self.board.play_table_rect.bottom - 10
             y_step = 100
@@ -67,34 +68,43 @@ class Play_screen():
             y_range = range(min_y, max_y, y_step)
 
             color_list = list(self.settings.chip_color_dict.values())
-            i=0
+            i = 0
             for y in y_range:
                 try:
-                    new_chip = Chip(color=color_list[i], settings=self.settings)
+                    new_chip = Chip(
+                        color=color_list[i], settings=self.settings)
                     new_chip.rect.center = (min_x, y)
                     self.chip_group.add(new_chip)
-                    i+=1
+                    i += 1
                 except IndexError:
                     break
-                
+
             min_y += 20
             max_y = min_y + y_step * 3
             y_range = range(min_y, max_y, y_step)
             for y in y_range:
                 try:
-                    new_chip = Chip(color=color_list[i], settings=self.settings)
+                    new_chip = Chip(
+                        color=color_list[i], settings=self.settings)
                     new_chip.rect.center = (max_x, y)
                     self.chip_group.add(new_chip)
-                    i+=1
+                    i += 1
                 except IndexError:
                     break
-            
+
             self.gi.all_chips_group_list = self.chip_all_groups_list
 
     def update(self):
         """Function to update the board"""
         if self.active:
             self.update_chips()
+
+            try:
+                self.chip_all_groups_list = [self.chip_group,
+                                             self.chip_group_placed, self.cursor_chip]
+                self.gi.all_chips_group_list = self.chip_all_groups_list
+            except:
+                print("No groups")
 
             if self.info_field_list:
                 for field in self.info_field_list:
@@ -123,9 +133,10 @@ class Play_screen():
             if self.roulette_wheel:
                 self.roulette_wheel.update()
 
+            # Draw the previously rolled numbers list
             del self.text_list[1:]
             for i, number in enumerate(self.gi.previous_rolled_numbers_list):
-                pos = 900, 30 + i*30
+                pos = 1200, 30 + i*30
                 msg = str(number)
                 font_size = self.settings.font_size
                 surf, rect = gf.create_text(pos, msg, font_size)
@@ -165,29 +176,42 @@ class Play_screen():
                 self.gi.info_fields_list.clear()
 
         # This is the chip that follows the cursor
-        if self.gi.cursor_chip:
-            self.gi.cursor_chip.reposition(x, y)
+        c_chip = self.gi.cursor_chip
+        if c_chip:
+            if c_chip.rect.center != (x,y):
+                offset_x = c_chip.rect.centerx - x
+                if offset_x != 0:
+                    new_x = c_chip.rect.centerx - (offset_x /3)
+                else:
+                    new_x = x
+                
+                offset_y = c_chip.rect.centery - y
+                if offset_y != 0:
+                    new_y = c_chip.rect.centery - (offset_y /3)
+                else:
+                    new_y = y
+                c_chip.reposition(new_x, new_y)
 
             """Create an information box showing the selected chips expected return price"""
             if not self.info_field_list:
-                expected_return = self.gi.cursor_chip.get_expected_return(
+                expected_return = c_chip.get_expected_return(
                     self.gi)
-                if expected_return != self.gi.cursor_chip.price:
+                if expected_return != c_chip.price:
                     new_info_field = gf.create_info_field(
-                        self.settings, self.gi, chip=self.gi.cursor_chip, id=2)
+                        self.settings, self.gi, chip=c_chip, id=2)
                     self.info_field_list.append(new_info_field)
 
             else:
                 if self.info_field_list:
-                    expected_return = self.gi.cursor_chip.get_expected_return(
+                    expected_return = c_chip.get_expected_return(
                         self.gi)
                     msg = "€" + "{:,}".format(expected_return)
                     self.info_field_list[-1].prep_msg(msg)
-                    if expected_return == self.gi.cursor_chip.price:
+                    if expected_return == c_chip.price:
                         self.info_field_list.clear()
                         self.gi.info_fields_list.clear()
 
-        if not self.gi.cursor_chip:
+        if not c_chip:
             if self.info_field_list:
                 if self.info_field_list[-1].id == 2:
                     self.info_field_list.clear()
@@ -226,6 +250,7 @@ class Play_screen():
             self.screen.blit(msg_image, msg_image_rect)
 
         try:
-            self.roulette_wheel.blitme()
+            if self.roulette_wheel:
+                self.roulette_wheel.blitme()
         except Exception:
             pass
