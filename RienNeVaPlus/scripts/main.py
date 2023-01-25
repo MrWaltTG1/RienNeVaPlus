@@ -32,6 +32,8 @@ def run():
             if not game_info.play_screen.active:
                 game_info.play_screen.create_self()
             game_info.play_screen.update()
+            if game_info.tabel:
+                game_info.tabel.update()
 
             if game_info.winnings_screen:
                 game_info.winnings_screen.update()

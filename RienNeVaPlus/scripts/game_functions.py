@@ -42,6 +42,9 @@ def update_screen(screen, settings: Settings, main_menu: Main_menu, play_screen:
         elif type == "winnings_screen" or type == "budget_bar" or type == "tabel":
             if element_list:
                 element_list.blitme(screen)
+        elif type == "previous_fields":
+            for field in element_list:
+                field.blitme(screen)
 
     pygame.display.flip()
 

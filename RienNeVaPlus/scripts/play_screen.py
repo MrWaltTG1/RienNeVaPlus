@@ -41,10 +41,10 @@ class Play_screen():
 
     def create_placement_buttons(self):
         text_list = ["undo", "cross", "redo"]
-        pos = [700, 200]
-        size = [35, 35]
+        pos = [900, 180]
+        size = [80, 80]
         for text in text_list:
-            pos[0] += int(size[0]*1.3)
+            pos[0] += int(size[0]*1.1)
             new_button = Button(self.settings, pos, size, image=text)
             self.button_list.append(new_button)
 
@@ -132,15 +132,6 @@ class Play_screen():
 
             if self.roulette_wheel:
                 self.roulette_wheel.update()
-
-            # Draw the previously rolled numbers list
-            del self.text_list[1:]
-            for i, number in enumerate(self.gi.previous_rolled_numbers_list):
-                pos = 1200, 30 + i*30
-                msg = str(number)
-                font_size = self.settings.font_size
-                surf, rect = gf.create_text(pos, msg, font_size)
-                self.text_list.append([surf, rect])
 
             if self.budget != self.gi.personal_budget:
                 self.budget = self.gi.personal_budget

@@ -43,12 +43,17 @@ class Button():
     def prep_image(self, image: str):
         self.image_msg = image
         text_dict = {
-            "redo": "RienNeVaPlus/images/redo_button.bmp",
-            "cross": "RienNeVaPlus/images/cross_thin.bmp",
-            "undo": "RienNeVaPlus/images/undo_button.bmp",
-            "back": "RienNeVaPlus/images/back_button.bmp",
+            "redo": "RienNeVaPlus/images/buttons/redo2.png",
+            "cross": "RienNeVaPlus/images/buttons/cross_white.png",
+            "undo": "RienNeVaPlus/images/buttons/undo2.png",
+            "back": "RienNeVaPlus/images/buttons/back2.png",
             "start": "RienNeVaPlus/images/Button.png",
         }
+        if not image == "start":
+            self.bg_surf = pygame.image.load("RienNeVaPlus/images/buttons/button_wood_bg.png")
+            self.bg_surf = pygame.transform.smoothscale(self.bg_surf, self.size)
+        else:
+            self.bg_surf = None
         image_surf = pygame.image.load(text_dict[image])
         image_surf = pygame.transform.smoothscale(image_surf, self.size)
         image_rect = image_surf.get_rect()
@@ -57,8 +62,12 @@ class Button():
         return image_surf, image_rect
 
     def blitme(self, screen):
+        if self.bg_surf:
+            screen.blit(self.bg_surf, self.image_list[-1][1])
+            
         for image in self.image_list:
             screen.blit(image[0], image[1])
+
 
 
 class Pop_up():

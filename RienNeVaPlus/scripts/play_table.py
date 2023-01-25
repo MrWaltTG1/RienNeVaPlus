@@ -168,7 +168,7 @@ class Play_field():
 
 
 class Single_field(pygame.sprite.Sprite):
-    def __init__(self, size, color, number, pos, settings) -> None:
+    def __init__(self, size, color, number, pos, settings, rotate_text=True) -> None:
         self.settings = settings
         self.image_list = []
         self.selected = False
@@ -183,20 +183,20 @@ class Single_field(pygame.sprite.Sprite):
         else:
             self.rect = pygame.Rect(pos, size)
 
-        # Create outline block
-        self.image_outline_rect = pygame.Rect(pos, size)
-        self.image_outline_rect.center = self.rect.center
-
         # Create text and hitboxes
         if isinstance(number, int):
             self.msg = str(number)
             font_size = settings.font_size
             self.hitbox_rect_dict = gf.create_hitboxes(self)
             self.msg_image, self.msg_image_rect = gf.create_text(
-                self.rect.center, self.msg, font_size, rotate=True)
+                self.rect.center, self.msg, font_size, rotate=rotate_text)
         else:
             self.msg = number
             self.hitbox_rect_dict = gf.create_hitboxes(self, center_only=True)
+    
+    def reposition(self, pos):
+        self.rect.topleft = pos
+        self.msg_image_rect.center = self.rect.center
 
     def blitme(self, screen):
         """Draw the field on the screen"""
@@ -237,7 +237,7 @@ class Single_field(pygame.sprite.Sprite):
         # Draw the outlining box
         pygame.draw.rect(
             screen, self.settings.color_dict["offwhite"],
-            self.image_outline_rect, width=2)
+            self.rect, width=2)
 
 
 class Block():

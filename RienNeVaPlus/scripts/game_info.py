@@ -13,13 +13,14 @@ class Game_info():
         self.personal_budget = 0
         self.returns = 0
         self.expected_winnings = 0
-        self.previous_rolled_numbers_list = [0, 0, 0, 0, 0]
+        self.previous_rolled_numbers_list = [-1, -1, -1, -1, -1]
 
         self.button_list = set()
         self.pop_up_list = set()
         self.info_fields_list = set()
         self.fields_list = list()
         self.selected_fields_list = set()
+        self.previous_fields_list = list()
         self.hitboxes_dict = dict()
         self.budget_bar = None
         self.winnings_screen = None
@@ -62,6 +63,7 @@ class Game_info():
             "chips": self.all_chips_group_list,
             "info_fields": self.info_fields_list,
             "fields_list": self.fields_list,
+            "previous_fields": self.previous_fields_list,
             "selected_fields": self.selected_fields_list,
             "hitboxes": self.hitboxes_dict,
             "winnings_screen": self.winnings_screen,
@@ -76,6 +78,8 @@ class Game_info():
 
         if len(self.previous_rolled_numbers_list) > 5:
             self.previous_rolled_numbers_list.pop(-1)
+        if len(self.previous_fields_list) > 5:
+            self.previous_fields_list.pop(-1)
 
         if self.all_chips_group_list:
             # Index 0 is the chip group that is clickable
