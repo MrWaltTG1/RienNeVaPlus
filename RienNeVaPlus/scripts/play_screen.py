@@ -3,9 +3,10 @@ import pygame
 from chips import Chip
 from elements import Button, Info_field, Pop_up, Budget_bar
 from play_table import Play_field
-from roulette_wheel import Roulette_wheel
+from roulette_wheel import Roulette
 from settings import Settings
 from number_tabel import Tabel
+
 
 class Play_screen():
     """Creates the play screen"""
@@ -29,8 +30,7 @@ class Play_screen():
 
     def create_self(self):
         self.board = Play_field(self.screen, self.settings, self.gi)
-        self.roulette_wheel = Roulette_wheel(
-            self.screen, self.settings, self.gi)
+        self.roulette_wheel = Roulette(self.settings, self.gi)
         self.create_chips()
         self.create_budget_text(self.budget, self.settings.bg_rect.bottomright)
         self.create_placement_buttons()
@@ -45,14 +45,21 @@ class Play_screen():
         size = [80, 80]
         for text in text_list:
             pos[0] += int(size[0]*1.1)
-            new_button = Button(self.settings, pos, size, image=text)
+            new_button = Button(self.settings, self.gi, pos, size, image=text)
             self.button_list.append(new_button)
+
+        # Create the area around them (UGLY)
+        """pos = self.button_list[-3].rect.left-40, self.button_list[-3].rect.top-13
+        new_surf = pygame.image.load("RienNeVaPlus/images/buttons/button_wood_bg.png")
+        new_rect = pygame.Rect(pos, (size[0]*4.3, size[1]*1.35))
+        new_surf = pygame.transform.smoothscale(new_surf, new_rect.size)
+        self.text_list.append((new_surf, new_rect))"""
 
     def create_back_button(self):
         text = "back"
-        pos = 50, 50
-        size = [35, 35]
-        new_button = Button(self.settings, pos, size, image=text)
+        pos = 50, 70
+        size = [80, 80]
+        new_button = Button(self.settings, self.gi, pos, size, image=text)
         self.button_list.append(new_button)
 
     def create_chips(self):
@@ -131,7 +138,8 @@ class Play_screen():
                 self.board.update()
 
             if self.roulette_wheel:
-                self.roulette_wheel.update()
+                pass
+                # self.roulette_wheel.update()
 
             if self.budget != self.gi.personal_budget:
                 self.budget = self.gi.personal_budget
@@ -169,16 +177,16 @@ class Play_screen():
         # This is the chip that follows the cursor
         c_chip = self.gi.cursor_chip
         if c_chip:
-            if c_chip.rect.center != (x,y):
+            if c_chip.rect.center != (x, y):
                 offset_x = c_chip.rect.centerx - x
                 if offset_x != 0:
-                    new_x = c_chip.rect.centerx - (offset_x /3)
+                    new_x = c_chip.rect.centerx - (offset_x / 3)
                 else:
                     new_x = x
-                
+
                 offset_y = c_chip.rect.centery - y
                 if offset_y != 0:
-                    new_y = c_chip.rect.centery - (offset_y /3)
+                    new_y = c_chip.rect.centery - (offset_y / 3)
                 else:
                     new_y = y
                 c_chip.reposition(new_x, new_y)
@@ -240,8 +248,5 @@ class Play_screen():
         for msg_image, msg_image_rect in self.text_list:
             self.screen.blit(msg_image, msg_image_rect)
 
-        try:
-            if self.roulette_wheel:
-                self.roulette_wheel.blitme()
-        except Exception:
-            pass
+        if self.roulette_wheel:
+            self.roulette_wheel.blitme(self.screen)

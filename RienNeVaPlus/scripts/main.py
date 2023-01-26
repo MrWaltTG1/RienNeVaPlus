@@ -37,6 +37,8 @@ def run():
 
             if game_info.winnings_screen:
                 game_info.winnings_screen.update()
+        for button in game_info.elements_dict["buttons"]:
+            button.update()
 
         gf.check_events(screen, settings, game_info.main_menu,
                         game_info.play_screen, game_info)

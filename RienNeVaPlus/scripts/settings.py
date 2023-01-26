@@ -64,3 +64,7 @@ class Settings():
         # Roulette wheel
         self.spinning_time_min = 2000
         self.spinning_time_max = 7000
+        
+        self.wheel_radius = 200
+        self.wheel_radius_big = 250
+        self.wheel_center = 300,300

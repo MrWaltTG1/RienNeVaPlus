@@ -4,11 +4,14 @@ import game_functions as gf
 
 class Button():
 
-    def __init__(self, settings, pos, size, msg=None, image=None):
+    def __init__(self, settings, game_info, pos, size, msg=None, image=None):
         self.settings, self.msg = settings, msg
         self.border = 0
         self.size = size
         self.image_list = []
+        self.image = image
+        self.gi = game_info
+        self.pos = pos
 
         self.button_color = settings.button_color
         self.rect = pygame.Rect((0, 0), size)
@@ -16,11 +19,11 @@ class Button():
         self.bg = False
         if image:
             image_surf, image_rect = self.prep_image(image)
-            self.image_list.append((image_surf, image_rect))
+            self.image_list.append([image_surf, image_rect])
         if self.msg:
             image_surfs, image_rects = self.prep_msg(self.msg)
             for surf, rect in zip(image_surfs, image_rects):
-                self.image_list.append((surf, rect))
+                self.image_list.append([surf, rect])
             self.bg = True
 
         self.clicked = False
@@ -38,28 +41,58 @@ class Button():
         msg_image_shad, msg_image_shad_rect = gf.get_shadow_blit(
             self.msg, msg_image_rect, font_type, font_size)
 
-        return (msg_image_shad, msg_image), (msg_image_shad_rect, msg_image_rect)
+        return [msg_image_shad, msg_image], [msg_image_shad_rect, msg_image_rect]
 
-    def prep_image(self, image: str):
+    def prep_image(self, image: str, size=None):
         self.image_msg = image
-        text_dict = {
-            "redo": "RienNeVaPlus/images/buttons/redo2.png",
+        if not size:
+            size = self.size
+        self.text_dict = {
+            "redo": "RienNeVaPlus/images/buttons/rotate_white.png",
             "cross": "RienNeVaPlus/images/buttons/cross_white.png",
-            "undo": "RienNeVaPlus/images/buttons/undo2.png",
-            "back": "RienNeVaPlus/images/buttons/back2.png",
+            "undo": "RienNeVaPlus/images/buttons/rotate_white.png",
+            "back": "RienNeVaPlus/images/buttons/back_white.png",
             "start": "RienNeVaPlus/images/Button.png",
         }
         if not image == "start":
-            self.bg_surf = pygame.image.load("RienNeVaPlus/images/buttons/button_wood_bg.png")
-            self.bg_surf = pygame.transform.smoothscale(self.bg_surf, self.size)
+            self.og_bg_surf = pygame.image.load("RienNeVaPlus/images/buttons/button_wood_bg.png")
+            self.bg_surf = pygame.transform.smoothscale(self.og_bg_surf, size)       
         else:
             self.bg_surf = None
-        image_surf = pygame.image.load(text_dict[image])
-        image_surf = pygame.transform.smoothscale(image_surf, self.size)
-        image_rect = image_surf.get_rect()
+        self.image_surf = pygame.image.load(self.text_dict[image])
+        self.image_surf = pygame.transform.smoothscale(self.image_surf, size)
+        if image == "undo":
+                self.image_surf = pygame.transform.flip(self.image_surf, True, False) 
+        image_rect = self.image_surf.get_rect()
         image_rect.center = self.rect.center
 
-        return image_surf, image_rect
+        return self.image_surf, image_rect
+    
+    def reposition(self, pos):
+        self.rect.center = pos
+        for surf, rect in self.image_list:
+            rect.center = self.rect.center
+        
+    def resize(self, size):
+        self.rect.size = size
+        if self.bg_surf:
+            self.bg_surf = pygame.transform.smoothscale(self.og_bg_surf, size)
+        for i, (surf, rect) in enumerate(self.image_list):
+            surf = pygame.transform.smoothscale(self.image_surf, size)
+            self.image_list[i][0] = surf
+            
+    def update(self):
+        if self.image == "redo":
+            if not self.gi.placed_chips_undo_list:
+                self.resize((70, 70))
+                self.reposition(self.pos)
+            else:
+                self.resize(self.size)
+        elif self.image == "undo" or self.image == "cross":
+            if not self.gi.placed_chips_list:
+                self.resize((70, 70))
+            else:
+                self.resize(self.size)
 
     def blitme(self, screen):
         if self.bg_surf:

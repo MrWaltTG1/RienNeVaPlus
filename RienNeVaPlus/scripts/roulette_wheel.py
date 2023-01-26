@@ -1,8 +1,10 @@
-import pygame
+from math import cos, pi, sin, sqrt
 from random import randint
-from settings import Settings
-from pause_screen import Pause_screen
+
 import possible_bets as pb
+import pygame
+from pause_screen import Pause_screen
+from settings import Settings
 
 
 class Roulette_wheel():
@@ -82,3 +84,79 @@ class Roulette_wheel():
 
     def blitme(self):
         self.screen.blit(self.image, self.rect)
+
+
+class Roulette():
+    def __init__(self, settings, game_info) -> None:
+        self.settings, self.gi = settings, game_info
+        self.text_list = []
+        self.coord_list = []
+
+        self.coords_list, self.color_list = self.create_fields()
+        for number in pb.wheel:
+            self.prep_msg(str(number))
+
+    def find_coords(self, angle, radius="small"):
+        center = self.settings.wheel_center
+        if radius is "small":
+            radius = self.settings.wheel_radius
+        elif radius is "big":
+            radius = self.settings.wheel_radius_big
+        else:
+            center = 0, 0
+        if isinstance(radius, int):
+            x, y = (radius*sin(angle * (pi/180))), (radius*cos(angle * (pi/180)))
+
+            x += center[0]
+            y += center[1]
+            return x, y
+        
+        return "Invalid radius"
+
+    def create_fields(self):
+        numbers = pb.wheel
+        angle_offset = 360 / len(numbers)
+        color_list, points_list, coords_list = [], [], []
+
+        for i, number in enumerate(numbers):
+            angle = i*angle_offset
+            print(angle)
+            points_list = []
+            min_x, min_y = self.find_coords(angle-180)
+            max_x, max_y = self.find_coords(angle-180, radius="big")
+            max_x2, max_y2 = self.find_coords(angle-180+angle_offset, radius="big")
+            min_x2, min_y2 = self.find_coords(angle-180+angle_offset)
+
+            points_list.append((min_x, min_y))
+            points_list.append((max_x, max_y))
+            points_list.append((max_x2, max_y2))
+            points_list.append((min_x2, min_y2))
+
+            coords_list.append(points_list)
+            if number in pb.noir:
+                color = self.settings.color_dict["black"]
+            elif number in pb.rouge:
+                color = self.settings.color_dict["red"]
+            else:
+                color = self.settings.color_dict["light_green"]
+            color_list.append(color)
+
+        return coords_list, color_list
+
+    def prep_msg(self, msg: str):
+        text_color = self.settings.font_color
+        font_type = self.settings.font_type
+        font_size = int(self.settings.font_size / 3)
+        font = pygame.font.SysFont(font_type, font_size)
+        msg_image = font.render(msg, True, text_color)
+        msg_image_rect = msg_image.get_rect()
+
+        self.text_list.append([msg_image, msg_image_rect])
+
+    def blitme(self, screen):
+        for points, color, text in zip(self.coords_list, self.color_list, self.text_list):
+            pygame.draw.polygon(screen, color, points, 0)
+            text[1].bottomleft = points[0]
+            screen.blit(*text)
+
+        # pygame.draw.circle(screen, (0,0,255), self.settings.wheel_center, self.settings.wheel_radius_big)
