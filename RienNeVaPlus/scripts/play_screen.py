@@ -138,8 +138,7 @@ class Play_screen():
                 self.board.update()
 
             if self.roulette_wheel:
-                pass
-                # self.roulette_wheel.update()
+                self.roulette_wheel.update()
 
             if self.budget != self.gi.personal_budget:
                 self.budget = self.gi.personal_budget

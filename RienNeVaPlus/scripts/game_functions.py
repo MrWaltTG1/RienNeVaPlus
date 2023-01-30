@@ -149,7 +149,7 @@ def check_mouse_down_events(event, screen, settings: Settings, main_menu, play_s
                                 play_screen.roulette_wheel.spin()
                             else:
                                 print("No chips have been placed on the board yet")
-                except Exception:
+                except ValueError:
                     pass
 
 

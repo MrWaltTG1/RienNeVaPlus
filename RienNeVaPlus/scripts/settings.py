@@ -62,9 +62,13 @@ class Settings():
         self.start_button_size = 500, 400
 
         # Roulette wheel
-        self.spinning_time_min = 2000
-        self.spinning_time_max = 7000
+        self.spinning_time_min = 5000
+        self.spinning_time_max = 9000
+        self.base_spinning_speed = 0.5
         
-        self.wheel_radius = 200
-        self.wheel_radius_big = 250
-        self.wheel_center = 300,300
+        
+        self.wheel_radius = 170
+        self.wheel_radius_small = self.wheel_radius - 30
+        self.wheel_radius_big = self.wheel_radius + 40
+        self.wheel_center = 300,400
+        
