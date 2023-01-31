@@ -11,6 +11,7 @@ from main_menu import Main_menu
 from play_screen import Play_screen
 from settings import Settings
 from pause_screen import Pause_screen
+from pygame import gfxdraw
 
 
 def update_screen(screen, settings: Settings, main_menu: Main_menu, play_screen: Play_screen, game_info: Game_info):
@@ -409,3 +410,12 @@ def get_shadow_blit(msg, msg_image_rect, font_type, font_size):
             dropshadow_offset, msg_image_rect.centery + dropshadow_offset
             
         return msg_image_shad,msg_image_shad_rect
+    
+def draw_circle(screen, color, pos, radius, width=0):
+    if width == 0:
+        gfxdraw.aacircle(screen, int(pos[0]), int(pos[1]), radius, color)
+        gfxdraw.filled_circle(screen, int(pos[0]), int(pos[1]), radius, color)
+    else:
+        pygame.draw.circle(screen, color, pos, radius, width)
+        gfxdraw.aacircle(screen, int(pos[0]), int(pos[1]), radius-width+1, color)
+        gfxdraw.aacircle(screen, int(pos[0]), int(pos[1]), radius-1, color)

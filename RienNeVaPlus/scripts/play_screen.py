@@ -15,7 +15,7 @@ class Play_screen():
         """Init"""
 
         self.screen, self.settings, self.gi = screen, settings, game_info
-        self.button_list, self.pop_up_list, self.text_list = [], [], []
+        self.button_list, self.pop_up_list, self.image_list = [], [], []
         self.board = None
         self.budget, self.new_budget, self.do_update_budget_text = 0, 0, None
         self.info_field_list, self.info_field_list_expected = [], []
@@ -37,7 +37,18 @@ class Play_screen():
         self.create_back_button()
         Budget_bar(self.settings, self.gi)
         Tabel(self.settings, self.gi)
+        self.create_wood_items()
         self.active = True
+        
+    def create_wood_items(self):
+        
+        # Bottom row wood
+        br_surf = pygame.image.load("RienNeVaPlus/images/br_wood.png")
+        size = self.settings.bg_rect.w, self.settings.bg_rect.h
+        br_surf = pygame.transform.smoothscale(br_surf, size)
+        br_rect = br_surf.get_rect()
+        br_rect.centery += 10
+        self.image_list.append((br_surf, br_rect))
 
     def create_placement_buttons(self):
         text_list = ["undo", "cross", "redo"]
@@ -220,9 +231,9 @@ class Play_screen():
                 chip.get_expected_return(self.gi)
 
     def update_budget_text(self, budget: int, index=0, font_color=None):
-        pos = self.text_list[index][1].bottomright
-        if self.text_list:
-            self.text_list.pop(index)
+        pos = self.image_list[index][1].bottomright
+        if self.image_list:
+            self.image_list.pop(index)
         msg = "€" + "{:,.2f}".format(budget)
         if font_color:
             msg_image, msg_image_rect = gf.create_text(
@@ -230,21 +241,21 @@ class Play_screen():
         else:
             msg_image, msg_image_rect = gf.create_text(pos, msg, 40)
         msg_image_rect.bottomright = pos
-        self.text_list.insert(index, (msg_image, msg_image_rect))
+        self.image_list.insert(index, (msg_image, msg_image_rect))
 
     def create_budget_text(self, budget: int, pos, index=0):
         """pos is the position of the text adjusted to the bottom right of the text"""
         msg = "€" + "{:,.2f}".format(budget)
         msg_image, msg_image_rect = gf.create_text(pos, msg, 40)
         msg_image_rect.bottomright = pos
-        self.text_list.insert(index, (msg_image, msg_image_rect))
+        self.image_list.insert(index, (msg_image, msg_image_rect))
 
     def blitme(self):
         """Function to blit to the screen."""
         if self.board:
             self.board.blitme()
 
-        for msg_image, msg_image_rect in self.text_list:
+        for msg_image, msg_image_rect in self.image_list:
             self.screen.blit(msg_image, msg_image_rect)
 
         if self.roulette_wheel:

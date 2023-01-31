@@ -24,8 +24,9 @@ class Settings():
             "red" : [224, 8, 11],
             "black" : [10,10,10],
             "dark_brown" : [60, 25, 18],
-            "yellow" : [243, 198, 32],
-            "yellow_faint" : [243, 198, 32],
+            "yellow_dark" : [243, 198, 31],
+            "yellow" : [255, 215, 0],
+            "yellow_faint" : [255, 215, 70],
             "dark_green" : [1, 67, 30],
             "light_green" : [1, 109, 41]
         }
@@ -63,12 +64,12 @@ class Settings():
 
         # Roulette wheel
         self.spinning_time_min = 5000
-        self.spinning_time_max = 9000
+        self.spinning_time_max = 10000
         self.base_spinning_speed = 0.5
         
         
-        self.wheel_radius = 170
-        self.wheel_radius_small = self.wheel_radius - 30
-        self.wheel_radius_big = self.wheel_radius + 40
+        self.wheel_radius = 150
+        self.wheel_radius_small = self.wheel_radius - 50
+        self.wheel_radius_big = self.wheel_radius + 30
         self.wheel_center = 300,400
         
