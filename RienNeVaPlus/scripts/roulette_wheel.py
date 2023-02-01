@@ -1,6 +1,6 @@
 from math import atan2, cos, degrees, pi, sin
 from random import randint
-from pygame import gfxdraw
+import time
 
 import possible_bets as pb
 import game_functions as gf
@@ -8,8 +8,9 @@ import pygame
 
 
 class Roulette():
-    def __init__(self, settings, game_info) -> None:
+    def __init__(self, settings, game_info, play_screen) -> None:
         self.settings, self.gi = settings, game_info
+        self.ps = play_screen
         self.text_list = []
         self.og_text_list = []
         self.coord_list = []
@@ -156,7 +157,6 @@ class Roulette():
         self.ticks_left = self.end_tick - pygame.time.get_ticks()
         if self.ticks_left <= 0:
             self.spinning = False
-            self.gi.current_stage = 1
         self.rotation += speed
         if self.rotation > 360:
             self.rotation -= 360
@@ -226,7 +226,6 @@ class Roulette():
             i-=1
 
     def blitme(self, screen):
-
         # Center of the roulette wheel
         center = self.settings.wheel_center
         screen.blit(self.wood_circle, self.wood_circle_rect)
@@ -276,6 +275,7 @@ class Roulette():
 
         # pygame.draw.rect(screen, (0, 0, 0), self.rect, 5)
         # pygame.draw.circle(screen, (0,0,255), center, self.settings.wheel_radius_big)
+
 
 
 class Ball():
@@ -351,6 +351,7 @@ class Ball():
             self.ticks_left = self.wheel.end_tick - pygame.time.get_ticks()
             if self.ticks_left <= 0:
                 self.gi.outcome = pb.wheel[index]
+                self.wheel.ps.create_winnings_screen()
                 print(self.gi.outcome)
         else:
             self.angle = self.get_angle(self.center)

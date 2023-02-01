@@ -1,12 +1,13 @@
 import game_functions as gf
 import pygame
+import time
 from chips import Chip
 from elements import Button, Info_field, Pop_up, Budget_bar
 from play_table import Play_field
 from roulette_wheel import Roulette
 from settings import Settings
 from number_tabel import Tabel
-
+from pause_screen import Pause_screen
 
 class Play_screen():
     """Creates the play screen"""
@@ -22,49 +23,32 @@ class Play_screen():
         self.active = False
         self.roulette_wheel = None
 
-        self.chip_group = pygame.sprite.Group()
+        self.chip_group = []
         self.cursor_chip = None
         self.chip_group_placed = pygame.sprite.Group()
         self.chip_all_groups_list = [self.chip_group,
                                      self.cursor_chip, self.chip_group_placed]
 
     def create_self(self):
+
         self.board = Play_field(self.screen, self.settings, self.gi)
-        self.roulette_wheel = Roulette(self.settings, self.gi)
+        self.roulette_wheel = Roulette(self.settings, self.gi, self)
         self.create_chips()
         self.create_budget_text(self.budget, self.settings.bg_rect.bottomright)
         self.create_placement_buttons()
         self.create_back_button()
         Budget_bar(self.settings, self.gi)
         Tabel(self.settings, self.gi)
-        self.create_wood_items()
         self.active = True
-        
-    def create_wood_items(self):
-        
-        # Bottom row wood
-        br_surf = pygame.image.load("RienNeVaPlus/images/br_wood.png")
-        size = self.settings.bg_rect.w, self.settings.bg_rect.h
-        br_surf = pygame.transform.smoothscale(br_surf, size)
-        br_rect = br_surf.get_rect()
-        br_rect.centery += 10
-        self.image_list.append((br_surf, br_rect))
 
     def create_placement_buttons(self):
         text_list = ["undo", "cross", "redo"]
-        pos = [900, 180]
         size = [80, 80]
-        for text in text_list:
-            pos[0] += int(size[0]*1.1)
-            new_button = Button(self.settings, self.gi, pos, size, image=text)
+        y = 120
+        x = range (900, 1200, int(size[0]*1.1))
+        for i, text in enumerate(text_list):
+            new_button = Button(self.settings, self.gi, (x[i], y), size, image=text)
             self.button_list.append(new_button)
-
-        # Create the area around them (UGLY)
-        """pos = self.button_list[-3].rect.left-40, self.button_list[-3].rect.top-13
-        new_surf = pygame.image.load("RienNeVaPlus/images/buttons/button_wood_bg.png")
-        new_rect = pygame.Rect(pos, (size[0]*4.3, size[1]*1.35))
-        new_surf = pygame.transform.smoothscale(new_surf, new_rect.size)
-        self.text_list.append((new_surf, new_rect))"""
 
     def create_back_button(self):
         text = "back"
@@ -74,47 +58,43 @@ class Play_screen():
         self.button_list.append(new_button)
 
     def create_chips(self):
-        """Function to create chips"""
+        """Function to create chips legend"""
 
         if self.board:
-            min_x = self.board.play_table_rect.right - 200
-            max_x = min_x + 80
+            self.chip_group.clear()
+            size = self.settings.bg_rect.w / 1.8, self.settings.bg_rect.h / 4
+            legend_rect = pygame.Rect((0, 0), size)
+            legend_rect.bottomright = self.settings.bg_rect.bottomright
 
-            min_y = self.board.play_table_rect.bottom - 10
-            y_step = 100
-            max_y = min_y + y_step * 3
-            y_range = range(min_y, max_y, y_step)
+            chip_dict = gf.calculate_legend_chips(self.gi.personal_budget)
+
+            name_list = ["thousand", "five hundred",
+                         "hundred", "twentyfive", "five", "one"]
+            slot_x_offset = legend_rect.w / 6.5
+            name_x_list = []
+            x = legend_rect.left
+            for name in name_list:
+                x += slot_x_offset
+                name_x_list.append([name, x])
 
             color_list = list(self.settings.chip_color_dict.values())
-            i = 0
-            for y in y_range:
-                try:
-                    new_chip = Chip(
-                        color=color_list[i], settings=self.settings)
-                    new_chip.rect.center = (min_x, y)
-                    self.chip_group.add(new_chip)
-                    i += 1
-                except IndexError:
-                    break
 
-            min_y += 20
-            max_y = min_y + y_step * 3
-            y_range = range(min_y, max_y, y_step)
-            for y in y_range:
-                try:
+            for name, x in name_x_list:
+                i = chip_dict[name]
+                y = legend_rect.top + 5
+                j = -(name_list.index(name)+1)
+                while i > 0:
                     new_chip = Chip(
-                        color=color_list[i], settings=self.settings)
-                    new_chip.rect.center = (max_x, y)
-                    self.chip_group.add(new_chip)
-                    i += 1
-                except IndexError:
-                    break
-
-            self.gi.all_chips_group_list = self.chip_all_groups_list
+                        color=color_list[j], settings=self.settings)
+                    new_chip.rect.center = (x, y)
+                    self.chip_group.insert(0, new_chip)
+                    y += 50
+                    i -= 1
 
     def update(self):
         """Function to update the board"""
         if self.active:
+
             self.update_chips()
 
             try:
@@ -154,6 +134,7 @@ class Play_screen():
             if self.budget != self.gi.personal_budget:
                 self.budget = self.gi.personal_budget
                 self.update_budget_text(self.budget)
+                self.create_chips()
 
             if self.gi.personal_budget <= 0 and not self.gi.placed_chips_list:
                 gf.game_over(self.screen, self.settings, self.gi)
@@ -250,13 +231,16 @@ class Play_screen():
         msg_image_rect.bottomright = pos
         self.image_list.insert(index, (msg_image, msg_image_rect))
 
+    def create_winnings_screen(self):
+        new_screen = Pause_screen(self.screen, self.settings, self.gi)
+        self.gi.winnings_screen = new_screen
+
     def blitme(self):
         """Function to blit to the screen."""
+
         if self.board:
             self.board.blitme()
-
         for msg_image, msg_image_rect in self.image_list:
             self.screen.blit(msg_image, msg_image_rect)
-
         if self.roulette_wheel:
             self.roulette_wheel.blitme(self.screen)

@@ -8,8 +8,15 @@ class Settings():
         self.screen_size = [1280, 1024]
         self.field_x, self.field_y = 100, 100
         self.bg_color = (90, 67, 220)
-        self.bg_surf = pygame.image.load("RienNeVaPlus/images/bg_green_felt.png")
+        self.bg_surf = pygame.image.load(
+            "RienNeVaPlus/images/bg_green_felt.png")
         self.bg_rect = self.bg_surf.get_rect()
+
+        self.br_surf = pygame.image.load(
+            "RienNeVaPlus/images/wood_panel_short.png")
+        # size = self.bg_rect.w, self.bg_rect.h
+        # self.br_surf = pygame.transform.scale(self.br_surf, size)
+        self.br_rect = self.br_surf.get_rect(bottomright=self.screen_size)
 
         """PLAY TABLE SETTINGS"""
         self.single_field_width = 50
@@ -17,18 +24,18 @@ class Settings():
         self.single_field_size = [
             self.single_field_width, self.single_field_height]
         self.start_pos_play_table = int(
-            self.bg_rect.width / 2), int(self.bg_rect.height / 2)
+            self.bg_rect.width / 2), int(self.bg_rect.height / 2.3)
 
         self.color_dict = {
-            "offwhite" : [250,250,250],
-            "red" : [224, 8, 11],
-            "black" : [10,10,10],
-            "dark_brown" : [60, 25, 18],
-            "yellow_dark" : [243, 198, 31],
-            "yellow" : [255, 215, 0],
-            "yellow_faint" : [255, 215, 70],
-            "dark_green" : [1, 67, 30],
-            "light_green" : [1, 109, 41]
+            "offwhite": [250, 250, 250],
+            "red": [224, 8, 11],
+            "black": [10, 10, 10],
+            "dark_brown": [60, 25, 18],
+            "yellow_dark": [243, 178, 31],
+            "yellow": [255, 215, 0],
+            "yellow_faint": [255, 215, 70],
+            "dark_green": [1, 67, 30],
+            "light_green": [1, 109, 41]
         }
 
         self.button_color = (0, 0, 0)
@@ -40,6 +47,10 @@ class Settings():
         self.pop_up_bg_color = (255, 255, 255)
 
         self.chip_size = [115, 115]
+        self.chip_image = pygame.image.load(
+            "RienNeVaPlus/images/chip_greyed.png")
+        self.chip_overlay_image = pygame.image.load(
+            "RienNeVaPlus/images/chip_overlay.png")
         self.chip_color_dict = {
             'BLUE': (50, 50, 255),
             'RED': (200, 50, 50),
@@ -66,10 +77,8 @@ class Settings():
         self.spinning_time_min = 5000
         self.spinning_time_max = 10000
         self.base_spinning_speed = 0.5
-        
-        
-        self.wheel_radius = 150
+
+        self.wheel_radius = 130
         self.wheel_radius_small = self.wheel_radius - 50
         self.wheel_radius_big = self.wheel_radius + 30
-        self.wheel_center = 300,400
-        
+        self.wheel_center = 300, 374

@@ -79,13 +79,14 @@ class Button():
             self.bg_surf = pygame.transform.smoothscale(self.og_bg_surf, size)
         for i, (surf, rect) in enumerate(self.image_list):
             surf = pygame.transform.smoothscale(self.image_surf, size)
+            rect = surf.get_rect(center = self.pos)
             self.image_list[i][0] = surf
+            self.image_list[i][1] = rect
             
     def update(self):
         if self.image == "redo":
             if not self.gi.placed_chips_undo_list:
                 self.resize((70, 70))
-                self.reposition(self.pos)
             else:
                 self.resize(self.size)
         elif self.image == "undo" or self.image == "cross":

@@ -1,43 +1,43 @@
 import pygame
 import game_functions as gf
+import time
 
 
 class Chip(pygame.sprite.Sprite):
     def __init__(self, *groups: pygame.sprite.Group, settings, color=None, resize_multiplier=1.0, shadow=False) -> None:
+
         super().__init__(*groups)
         self.color = color
         self.shadow = shadow
         # Create an image of the block, and fill it with a color.
         # This could also be an image loaded from the disk.
-        self.original_image = pygame.image.load(
-            "RienNeVaPlus/images/chip_greyed.bmp")
+        self.original_image = settings.chip_image
 
         self.size = [settings.chip_size[0]*resize_multiplier,
                      settings.chip_size[1]*resize_multiplier]
-        self.image = pygame.transform.smoothscale(
+        self.image = pygame.transform.scale(
             self.original_image, self.size)
 
         # Put on overlay on the image to create a shine
-        self.over_image = pygame.image.load(
-            "RienNeVaPlus/images/chip_overlay.png")
-        self.over_image = pygame.transform.smoothscale(
-            self.over_image, self.size)
+        og_over_image = settings.chip_overlay_image
+        self.over_image = pygame.transform.scale(
+            og_over_image, self.size)
         
         # Create a transparant shadow behind the chip
-        self.shad_image = pygame.transform.smoothscale(
+        self.shad_image = pygame.transform.scale(
             self.original_image, (self.size[0]+7, self.size[1]+7))
-        self.shad_image.fill((0,0,0), special_flags=pygame.BLEND_MIN)
+        self.shad_image.fill((0, 0, 0), special_flags=pygame.BLEND_MIN)
         self.shad_image.set_alpha(170)
-        
+
         # Create a 3D effect
-        self.d_image = pygame.transform.smoothscale(
+        self.d_image = pygame.transform.scale(
             self.original_image, (self.size[0]+1, self.size[1]+1))
-        
+
         # Color the chip
         if self.color:
             self.image.fill(self.color, special_flags=pygame.BLEND_RGB_MAX)
             self.d_image.fill(self.color, special_flags=pygame.BLEND_RGB_MAX)
-            self.d_image.fill((20,20,20), special_flags=pygame.BLEND_SUB)
+            self.d_image.fill((20, 20, 20), special_flags=pygame.BLEND_SUB)
 
             for k, v in settings.chip_color_dict.items():
                 if v == self.color:
@@ -45,12 +45,12 @@ class Chip(pygame.sprite.Sprite):
                         if k == l:
                             self.price = b
                             break
-        
-        
 
         # Fetch the rectangle object that has the dimensions of the image
         # Update the position of this object by setting the values of rect.x and rect.y
         self.rect = self.image.get_rect()
+        
+        
 
     def reposition(self, x: int, y: int) -> None:
         self.rect.center = x, y
@@ -91,4 +91,5 @@ class Chip(pygame.sprite.Sprite):
                         (self.rect.left-10, self.rect.top+10))
         screen.blit(self.d_image, (self.rect.left-2, self.rect.top+1))
         screen.blit(self.image, self.rect)
-        screen.blit(self.over_image, self.rect, special_flags=pygame.BLEND_ADD)
+        # Adding a shine effect is real slow for some reason
+        # screen.blit(self.over_image, self.rect, special_flags=pygame.BLEND_ADD)

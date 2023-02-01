@@ -21,8 +21,10 @@ def update_screen(screen, settings: Settings, main_menu: Main_menu, play_screen:
         main_menu.blitme()
     if play_screen.active and not game_info.current_stage == 0:
         play_screen.blitme()
+        screen.blit(settings.br_surf, settings.br_rect)
 
     for type, element_list in game_info.elements_dict.items():
+
         if type == "pop_ups":
             for pop_up in element_list:
                 pop_up.blitme(screen)
@@ -46,7 +48,6 @@ def update_screen(screen, settings: Settings, main_menu: Main_menu, play_screen:
         elif type == "previous_fields":
             for field in element_list:
                 field.blitme(screen)
-
     pygame.display.flip()
 
 
@@ -180,7 +181,6 @@ def create_text(pos, msg: str, font_size: int, rotate=False, font_color=None):
         msg_image = pygame.transform.rotate(msg_image, 90)
     msg_image_rect = msg_image.get_rect()
     msg_image_rect.center = pos  # type: ignore
-
 
     return msg_image, msg_image_rect
 
@@ -390,6 +390,7 @@ def game_over(screen, settings: Settings, game_info: Game_info):
     game_over = Pause_screen(screen, settings, game_info, True)
     game_info.winnings_screen = game_over  # type: ignore
 
+
 def get_darkened_screen_list(settings):
     size = settings.screen_size
     image = pygame.Surface(size)
@@ -397,25 +398,84 @@ def get_darkened_screen_list(settings):
     image = pygame.Surface.convert_alpha(image)
     image.set_alpha(120)
     rect = image.get_rect()
-    
+
     return image, rect
 
+
 def get_shadow_blit(msg, msg_image_rect, font_type, font_size):
-        dropshadow_offset = 1 + (font_size // 20)
-        font = pygame.font.SysFont(font_type, font_size)
-        font_color_shad = (0, 0, 0)
-        msg_image_shad = font.render(msg, True, font_color_shad)
-        msg_image_shad_rect = msg_image_shad.get_rect()
-        msg_image_shad_rect.center = msg_image_rect.centerx - \
-            dropshadow_offset, msg_image_rect.centery + dropshadow_offset
-            
-        return msg_image_shad,msg_image_shad_rect
-    
+    dropshadow_offset = 1 + (font_size // 20)
+    font = pygame.font.SysFont(font_type, font_size)
+    font_color_shad = (0, 0, 0)
+    msg_image_shad = font.render(msg, True, font_color_shad)
+    msg_image_shad_rect = msg_image_shad.get_rect()
+    msg_image_shad_rect.center = msg_image_rect.centerx - \
+        dropshadow_offset, msg_image_rect.centery + dropshadow_offset
+
+    return msg_image_shad, msg_image_shad_rect
+
+
 def draw_circle(screen, color, pos, radius, width=0):
     if width == 0:
         gfxdraw.aacircle(screen, int(pos[0]), int(pos[1]), radius, color)
         gfxdraw.filled_circle(screen, int(pos[0]), int(pos[1]), radius, color)
     else:
         pygame.draw.circle(screen, color, pos, radius, width)
-        gfxdraw.aacircle(screen, int(pos[0]), int(pos[1]), radius-width+1, color)
+        gfxdraw.aacircle(screen, int(pos[0]), int(
+            pos[1]), radius-width+1, color)
         gfxdraw.aacircle(screen, int(pos[0]), int(pos[1]), radius-1, color)
+
+
+def calculate_legend_chips(budget: int):
+    """Returns a dict of the amount of chips to put in the legend"""
+    max_chips = 5
+    chip_dict = {
+        "one": 0,
+        "five": 0,
+        "twentyfive": 0,
+        "hundred": 0,
+        "five hundred": 0,
+        "thousand": 0,
+    }
+    temp_budget = budget
+    while temp_budget >= 1000:
+        if not chip_dict["thousand"] >= max_chips:
+            chip_dict["thousand"] += 1
+            temp_budget -= 1000
+        else:
+            break
+    temp_budget = budget
+    while temp_budget >= 500:
+        if not chip_dict["five hundred"] >= max_chips:
+            chip_dict["five hundred"] += 1
+            temp_budget -= 500
+        else:
+            break
+    temp_budget = budget
+    while temp_budget >= 100:
+        if not chip_dict["hundred"] >= max_chips:
+            chip_dict["hundred"] += 1
+            temp_budget -= 100
+        else:
+            break
+    temp_budget = budget
+    while temp_budget >= 25:
+        if not chip_dict["twentyfive"] >= max_chips:
+            chip_dict["twentyfive"] += 1
+            temp_budget -= 25
+        else:
+            break
+    temp_budget = budget
+    while temp_budget >= 5:
+        if not chip_dict["five"] >= max_chips:
+            chip_dict["five"] += 1
+            temp_budget -= 5
+        else:
+            break
+    temp_budget = budget
+    while temp_budget >= 1:
+        if not chip_dict["one"] >= max_chips:
+            chip_dict["one"] += 1
+            temp_budget -= 1
+        else:
+            break
+    return chip_dict
