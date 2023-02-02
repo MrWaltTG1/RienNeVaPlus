@@ -1,6 +1,6 @@
 import pygame
 import game_functions as gf
-import time
+from play_table import *
 
 
 class Chip(pygame.sprite.Sprite):
@@ -22,7 +22,7 @@ class Chip(pygame.sprite.Sprite):
         og_over_image = settings.chip_overlay_image
         self.over_image = pygame.transform.scale(
             og_over_image, self.size)
-        
+
         # Create a transparant shadow behind the chip
         self.shad_image = pygame.transform.scale(
             self.original_image, (self.size[0]+7, self.size[1]+7))
@@ -49,8 +49,6 @@ class Chip(pygame.sprite.Sprite):
         # Fetch the rectangle object that has the dimensions of the image
         # Update the position of this object by setting the values of rect.x and rect.y
         self.rect = self.image.get_rect()
-        
-        
 
     def reposition(self, x: int, y: int) -> None:
         self.rect.center = x, y
@@ -61,6 +59,11 @@ class Chip(pygame.sprite.Sprite):
         self.field_list = gf.give_hovered_fields(all_fields, all_hitboxes)
 
         length = len(self.field_list)
+        for field in self.field_list:
+            if not isinstance(field, Single_field) or not isinstance(field, Field_zero):
+                length -= 1
+                break
+                
         if length == 1:
             price_multiplier = 35
         elif length == 2:
@@ -92,4 +95,4 @@ class Chip(pygame.sprite.Sprite):
         screen.blit(self.d_image, (self.rect.left-2, self.rect.top+1))
         screen.blit(self.image, self.rect)
         # Adding a shine effect is real slow for some reason
-        # screen.blit(self.over_image, self.rect, special_flags=pygame.BLEND_ADD)
+        screen.blit(self.over_image, self.rect, special_flags=pygame.BLEND_ADD)
