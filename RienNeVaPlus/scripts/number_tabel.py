@@ -1,7 +1,7 @@
 import pygame
 from play_table import Single_field
 import possible_bets as pb
-
+import game_functions as gf
 
 class Tabel():
     def __init__(self, settings, game_info) -> None:
@@ -51,7 +51,7 @@ class Tabel():
                     elif number in pb.rouge:
                         color = self.settings.color_dict["red"]
                     elif number == 0:
-                        color = (0, 255, 0)
+                        color = self.settings.color_dict["light_green"]
                     else:
                         color = None
 
@@ -62,10 +62,16 @@ class Tabel():
                         new_field.reposition((x,y))
                         self.gi.previous_fields_list.insert(0, new_field)
         
+        x, y = pygame.mouse.get_pos()
         for field in self.gi.previous_fields_list:
             if field.rect.bottom != self.container_rect.bottom:
                 pos = self.get_pos(field)
                 field.reposition(pos)
+            
+            if field.rect.collidepoint(x, y):
+                self.gi.selected_fields_list = gf.give_winning_fields(self.gi, int(field.msg))
+                
+        
     
     def get_pos(self, field):
         

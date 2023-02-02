@@ -19,19 +19,19 @@ class Play_field():
         self.cull_hitboxes()
 
     def update(self):
+        if self.gi.current_stage == 1:
+            self.field_list = []
+            x, y = pygame.mouse.get_pos()
+            if pygame.Rect.collidepoint(self.play_table_rect, x, y):  # type: ignore
+                self.field_list = gf.give_hovered_fields(
+                    self.all_fields, self.all_hitbox_rects_dict)
+                self.gi.selected_fields_list = set()
+                self.gi.selected_fields_list.update(self.field_list)
 
-        self.field_list = []
-        x, y = pygame.mouse.get_pos()
-        if pygame.Rect.collidepoint(self.play_table_rect, x, y):  # type: ignore
-            self.field_list = gf.give_hovered_fields(
-                self.all_fields, self.all_hitbox_rects_dict)
-            self.gi.selected_fields_list = set()
-            self.gi.selected_fields_list.update(self.field_list)
-
-        for field in self.all_fields:
-            if not field in self.gi.fields_list:
-                self.gi.fields_list.append(field)
-        self.gi.hitboxes_dict = self.all_hitbox_rects_dict
+            for field in self.all_fields:
+                if not field in self.gi.fields_list:
+                    self.gi.fields_list.append(field)
+            self.gi.hitboxes_dict = self.all_hitbox_rects_dict
 
     def cull_hitboxes(self):
         self.all_hitbox_rects_dict = {}
@@ -169,7 +169,7 @@ class Play_field():
 
 
 class Single_field(pygame.sprite.Sprite):
-    def __init__(self, size, color, number, pos, settings, rotate_text=True) -> None:
+    def __init__(self, size, color, number, pos, settings, rotate_text=True, size_multiplier = 1) -> None:
         self.settings = settings
         self.image_list = []
         self.selected = False
@@ -177,17 +177,17 @@ class Single_field(pygame.sprite.Sprite):
         self.alpha = 160
         # Create color block
         if color:
-            self.image = pygame.Surface(size)
+            self.image = pygame.Surface((int(size[0]*size_multiplier), int(size[1]*size_multiplier)))
             self.image.fill(color)
             self.rect = self.image.get_rect()
             self.rect.center = pos
         else:
-            self.rect = pygame.Rect(pos, size)
+            self.rect = pygame.Rect(pos, (int(size[0]*size_multiplier), int(size[1]*size_multiplier)))
 
         # Create text and hitboxes
         if isinstance(number, int):
             self.msg = str(number)
-            font_size = settings.font_size
+            font_size = int(settings.font_size * size_multiplier)
             self.hitbox_rect_dict = gf.create_hitboxes(self)
             self.msg_image, self.msg_image_rect = gf.create_text(
                 self.rect.center, self.msg, font_size, rotate=rotate_text)
@@ -196,6 +196,7 @@ class Single_field(pygame.sprite.Sprite):
             self.hitbox_rect_dict = gf.create_hitboxes(self, center_only=True)
     
     def reposition(self, pos):
+        """repositions the field from the topleft"""
         self.rect.topleft = pos
         self.msg_image_rect.center = self.rect.center
 
@@ -207,7 +208,7 @@ class Single_field(pygame.sprite.Sprite):
 
 
         if self.selected:
-            if self.alpha > 160:
+            if self.alpha > 180:
                 self.glow = -0.7
             if self.alpha < 100:
                 self.glow = 0.7
@@ -249,6 +250,9 @@ class Block():
         self.msg = str(msg)
         self.msg_list = self.msg.split()
         self.msg_image_list = []
+        self.selected = False
+        self.glow = 0.5
+        self.alpha = 160
         startx, starty = pos
         self.points = [
             [startx,                 starty],
@@ -290,14 +294,34 @@ class Block():
         elif self.msg == "ROUGE":
             pygame.draw.polygon(
                 screen, self.settings.color_dict["red"], self.points)
+        
+        if self.selected:
+            if self.alpha > 180:
+                self.glow = -0.7
+            if self.alpha < 100:
+                self.glow = 0.7
+            self.alpha += self.glow
+            color = self.settings.color_dict["yellow"] + [int(self.alpha)]
+            lx, ly = zip(*self.points)
+            min_x, min_y, max_x, max_y = min(lx), min(ly), max(lx), max(ly)
+            target_rect = pygame.Rect(min_x, min_y, max_x - min_x, max_y - min_y)
+            shape_surf = pygame.Surface(target_rect.size, pygame.SRCALPHA)
+            pygame.draw.polygon(shape_surf, color, [(x - min_x, y - min_y) for x, y in self.points])
+            screen.blit(shape_surf, target_rect)
+            
         pygame.draw.polygon(
             screen, (255, 255, 255), self.points, width=3)
+        
         for surf, rect in self.msg_image_list:
             screen.blit(surf, rect)
 
 
 class Thirds_field():
     def __init__(self, settings, pos: list, msg) -> None:
+        self.settings = settings
+        self.selected = False
+        self.glow = 0.5
+        self.alpha = 160
         size = (settings.single_field_width,
                 settings.single_field_height / 3)
         startx, starty = pos
@@ -318,6 +342,21 @@ class Thirds_field():
         self.hitbox_rect_dict = gf.create_hitboxes(self, center_only=True)
 
     def blitme(self, screen):
+        
+        if self.selected:
+            if self.alpha > 180:
+                self.glow = -0.7
+            if self.alpha < 100:
+                self.glow = 0.7
+            self.alpha += self.glow
+            color = self.settings.color_dict["yellow"] + [int(self.alpha)]
+            lx, ly = zip(*self.points)
+            min_x, min_y, max_x, max_y = min(lx), min(ly), max(lx), max(ly)
+            target_rect = pygame.Rect(min_x, min_y, max_x - min_x, max_y - min_y)
+            shape_surf = pygame.Surface(target_rect.size, pygame.SRCALPHA)
+            pygame.draw.polygon(shape_surf, color, [(x - min_x, y - min_y) for x, y in self.points])
+            screen.blit(shape_surf, target_rect)
+        
         pygame.draw.polygon(screen, (255, 255, 255), self.points, width=3)
         if hasattr(self, "msg_image"):
             screen.blit(
@@ -330,7 +369,7 @@ class Field_zero():
         self.settings = settings
         self.selected = False
         self.glow = 0.7
-        self.alpha = 60
+        self.alpha = 160
         startx, starty = pos
         self.points = [
             [startx,                            starty],
@@ -353,7 +392,7 @@ class Field_zero():
         pygame.draw.polygon(screen, (0, 150, 0), self.points)
 
         if self.selected:
-            if self.alpha > 140:
+            if self.alpha > 180:
                 self.glow = -0.7
             if self.alpha < 60:
                 self.glow = 0.7

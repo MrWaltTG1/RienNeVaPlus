@@ -42,12 +42,17 @@ def update_screen(screen, settings: Settings, main_menu: Main_menu, play_screen:
                             sprite.draw(screen)
                 except TypeError:
                     group.draw(screen)
-        elif type == "winnings_screen" or type == "budget_bar" or type == "tabel":
+        elif type == "winnings_screen" or type == "budget_bar" or type == "tabel" or type == "wheel":
             if element_list:
                 element_list.blitme(screen)
         elif type == "previous_fields":
             for field in element_list:
                 field.blitme(screen)
+        elif type == "cursor_chip":
+            if element_list:
+                element_list.draw(screen)
+    if game_info.game_over:
+        game_info.game_over.blitme(screen)
     pygame.display.flip()
 
 
@@ -82,77 +87,79 @@ def check_mouse_down_events(event, screen, settings: Settings, main_menu, play_s
     # LMB
     if event.button == 1:
         if game_info.current_stage < 2:
+            """If there is a cursor chip"""
+            if game_info.cursor_chip:
+                reset_chip = True
+                do_break = False
+                """Place a chip on the right location"""
+                for hitbox_dict in game_info.hitboxes_dict.values():
+                    for hitbox in hitbox_dict.values():
+                        if check_hitbox_mouse_collision(hitbox):
+                            new_chip = Chip(game_info.all_chips_group_list[1], settings=settings,
+                                            color=game_info.cursor_chip.color,
+                                            resize_multiplier=0.3)
+                            new_chip.reposition(
+                                hitbox.centerx, hitbox.centery)
+                            game_info.placed_chips_list.append(new_chip)
+                            game_info.personal_budget -= new_chip.price
+                            if game_info.personal_budget < new_chip.price:
+                                reset_chip = True
+                            else:
+                                reset_chip = False
+                            do_break = True
+                            break
+                    if do_break:
+                        break
+                """If a chip cannot be placed then remove the chip from the cursor"""
+                if reset_chip:
+                    game_info.cursor_chip = None
+
+            else:
+                """If a chip cannot be placed, then check if a placed chip has been clicked to remove it"""
+                for placed_chip in game_info.placed_chips_list:
+                    if placed_chip.rect.collidepoint(x, y):
+                        for chip_check in game_info.placed_chips_list:
+                            if placed_chip.rect.collidepoint(chip_check.rect.centerx - 2, chip_check.rect.centery + 2):
+                                if game_info.placed_chips_list.index(placed_chip) < game_info.placed_chips_list.index(chip_check):
+                                    placed_chip = chip_check
+                        game_info.placed_chips_list.remove(placed_chip)
+                        game_info.placed_chips_undo_list.append(
+                            [placed_chip])
+                        game_info.personal_budget += placed_chip.price
+                        break
+
+            """Create a cursor chip"""
+            for chip_list in game_info.all_chips_group_list[:1]:
+                for chip in chip_list:
+                    if chip.rect.collidepoint(x, y) and chip.price <= game_info.personal_budget:
+                        new_chip = Chip(settings=settings,
+                                        color=chip.color, resize_multiplier=0.5, shadow=True)
+                        new_chip.reposition(x, y)
+                        game_info.cursor_chip = new_chip  # type: ignore
+
+            """Set button state to true when clicked"""
+            for button in game_info.elements_dict["buttons"]:
+                if button.rect.collidepoint(x, y):
+                    button.clicked = True
+
+            try:
+                if play_screen.roulette_wheel:
+                    if play_screen.roulette_wheel.rect.collidepoint(x, y):
+                        if game_info.placed_chips_list:
+                            # game_info.outcome = spin_wheel()
+                            play_screen.roulette_wheel.spin()
+                        else:
+                            print("No chips have been placed on the board yet")
+            except ValueError:
+                pass
+            
+        elif game_info.current_stage == 2:
             if game_info.winnings_screen:
                 if game_info.winnings_screen.rect.collidepoint(x, y):
                     game_info.winnings_screen.active = False
+                    game_info.current_stage = 1
                     if game_info.winnings_screen.game_over == True:
                         game_info.reset = True
-            else:
-                """If there is a cursor chip"""
-                if game_info.cursor_chip:
-                    reset_chip = True
-                    do_break = False
-                    """Place a chip on the right location"""
-                    for hitbox_dict in game_info.hitboxes_dict.values():
-                        for hitbox in hitbox_dict.values():
-                            if check_hitbox_mouse_collision(hitbox):
-                                new_chip = Chip(game_info.all_chips_group_list[1], settings=settings,
-                                                color=game_info.cursor_chip.color,
-                                                resize_multiplier=0.3)
-                                new_chip.reposition(
-                                    hitbox.centerx, hitbox.centery)
-                                game_info.placed_chips_list.append(new_chip)
-                                game_info.personal_budget -= new_chip.price
-                                if game_info.personal_budget < new_chip.price:
-                                    reset_chip = True
-                                else:
-                                    reset_chip = False
-                                do_break = True
-                                break
-                        if do_break:
-                            break
-                    """If a chip cannot be placed then remove the chip from the cursor"""
-                    if reset_chip:
-                        game_info.cursor_chip = None
-
-                else:
-                    """If a chip cannot be placed, then check if a placed chip has been clicked to remove it"""
-                    for placed_chip in game_info.placed_chips_list:
-                        if placed_chip.rect.collidepoint(x, y):
-                            for chip_check in game_info.placed_chips_list:
-                                if placed_chip.rect.collidepoint(chip_check.rect.centerx - 2, chip_check.rect.centery + 2):
-                                    if game_info.placed_chips_list.index(placed_chip) < game_info.placed_chips_list.index(chip_check):
-                                        placed_chip = chip_check
-                            game_info.placed_chips_list.remove(placed_chip)
-                            game_info.placed_chips_undo_list.append(
-                                [placed_chip])
-                            game_info.personal_budget += placed_chip.price
-                            break
-
-                """Create a cursor chip"""
-                for chip_list in game_info.all_chips_group_list[:1]:
-                    for chip in chip_list:
-                        if chip.rect.collidepoint(x, y) and chip.price <= game_info.personal_budget:
-                            new_chip = Chip(settings=settings,
-                                            color=chip.color, resize_multiplier=0.5, shadow=True)
-                            new_chip.reposition(x, y)
-                            game_info.cursor_chip = new_chip  # type: ignore
-
-                """Set button state to true when clicked"""
-                for button in game_info.elements_dict["buttons"]:
-                    if button.rect.collidepoint(x, y):
-                        button.clicked = True
-
-                try:
-                    if play_screen.roulette_wheel:
-                        if play_screen.roulette_wheel.rect.collidepoint(x, y):
-                            if game_info.placed_chips_list:
-                                # game_info.outcome = spin_wheel()
-                                play_screen.roulette_wheel.spin()
-                            else:
-                                print("No chips have been placed on the board yet")
-                except ValueError:
-                    pass
 
 
 def check_mouse_up_events(event):
@@ -257,6 +264,7 @@ def give_hovered_fields(all_fields: list, all_hitboxes: dict):
                 field_list.append(value)
         else:
             field_number_list = dict[msg]
+            field_list.append(field_dict[msg])
 
     elif len(field_dict) > 1:
         if list(field_dict.keys())[-1].isdigit():
@@ -292,6 +300,32 @@ def give_hovered_fields(all_fields: list, all_hitboxes: dict):
 
     return field_list
 
+def give_winning_fields(game_info: Game_info, outcome = None):
+    number = game_info.outcome
+    if outcome or outcome == 0:
+        number = outcome
+    field_list = []
+    dict = {
+        "column1": pb.colonne1,
+        "column2": pb.colonne2,
+        "column3": pb.colonne3,
+        "MANQUE 1-18": pb.manque,
+        "IMPAIR": pb.impair,
+        "ROUGE": pb.rouge,
+        "PASSE 19-36": pb.passe,
+        "PAIR": pb.pair,
+        "NOIR": pb.noir,
+        "P12": pb.premiere,
+        "M12": pb.moyenne,
+        "D12": pb.derniere
+    }
+    for key, block in dict.items():
+        if number in block:
+            for field in game_info.fields_list:
+                if field.msg == key or field.msg == str(number):
+                    field_list.append(field)
+                 
+    return field_list
 
 def create_info_field(settings, game_info, size=(0, 0), msg=None, color=None, id=None, chip=None):
     """Creates an info field.
@@ -396,7 +430,7 @@ def get_darkened_screen_list(settings):
     image = pygame.Surface(size)
     image.fill((0, 0, 0))
     image = pygame.Surface.convert_alpha(image)
-    image.set_alpha(120)
+    image.set_alpha(180)
     rect = image.get_rect()
 
     return image, rect

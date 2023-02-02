@@ -44,8 +44,8 @@ class Play_screen():
     def create_placement_buttons(self):
         text_list = ["undo", "cross", "redo"]
         size = [80, 80]
-        y = 120
-        x = range (900, 1200, int(size[0]*1.1))
+        y = 680
+        x = range (1000, 1200, int(size[0]*1.1))
         for i, text in enumerate(text_list):
             new_button = Button(self.settings, self.gi, (x[i], y), size, image=text)
             self.button_list.append(new_button)
@@ -136,7 +136,7 @@ class Play_screen():
                 self.update_budget_text(self.budget)
                 self.create_chips()
 
-            if self.gi.personal_budget <= 0 and not self.gi.placed_chips_list:
+            if self.gi.personal_budget <= 0 and not self.gi.placed_chips_list and not self.gi.winnings_screen:
                 gf.game_over(self.screen, self.settings, self.gi)
 
     def update_chips(self):
@@ -243,4 +243,5 @@ class Play_screen():
         for msg_image, msg_image_rect in self.image_list:
             self.screen.blit(msg_image, msg_image_rect)
         if self.roulette_wheel:
-            self.roulette_wheel.blitme(self.screen)
+            pass
+            # self.roulette_wheel.blitme(self.screen)

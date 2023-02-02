@@ -54,7 +54,7 @@ class Button():
             "back": "RienNeVaPlus/images/buttons/back_white.png",
             "start": "RienNeVaPlus/images/Button.png",
         }
-        if not image == "start":
+        if image == "strt":
             self.og_bg_surf = pygame.image.load("RienNeVaPlus/images/buttons/button_wood_bg.png")
             self.bg_surf = pygame.transform.smoothscale(self.og_bg_surf, size)       
         else:
@@ -62,7 +62,7 @@ class Button():
         self.image_surf = pygame.image.load(self.text_dict[image])
         self.image_surf = pygame.transform.smoothscale(self.image_surf, size)
         if image == "undo":
-                self.image_surf = pygame.transform.flip(self.image_surf, True, False) 
+                self.image_surf = pygame.transform.flip(self.image_surf, True, False)
         image_rect = self.image_surf.get_rect()
         image_rect.center = self.rect.center
 
@@ -87,13 +87,17 @@ class Button():
         if self.image == "redo":
             if not self.gi.placed_chips_undo_list:
                 self.resize((70, 70))
+                self.image_surf.set_alpha(180)
             else:
                 self.resize(self.size)
+                self.image_surf.set_alpha(255)
         elif self.image == "undo" or self.image == "cross":
             if not self.gi.placed_chips_list:
                 self.resize((70, 70))
+                self.image_surf.set_alpha(180)
             else:
                 self.resize(self.size)
+                self.image_surf.set_alpha(255)
 
     def blitme(self, screen):
         if self.bg_surf:

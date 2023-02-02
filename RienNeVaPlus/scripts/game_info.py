@@ -24,6 +24,8 @@ class Game_info():
         self.hitboxes_dict = dict()
         self.budget_bar = None
         self.winnings_screen = None
+        self.wheel = None
+        self.game_over = None
 
         self.all_chips_group_list = []
         self.cursor_chip = None
@@ -44,6 +46,7 @@ class Game_info():
             "winnings_screen": self.winnings_screen,
             "budget_bar": self.budget_bar,
             "tabel": self.tabel,
+            "game_over" : self.game_over,
         }
 
         self.current_tick = pygame.time.get_ticks()
@@ -61,7 +64,6 @@ class Game_info():
             "pop_ups": self.pop_up_list,
             "buttons": self.button_list,
             "chips": self.all_chips_group_list,
-            "info_fields": self.info_fields_list,
             "fields_list": self.fields_list,
             "previous_fields": self.previous_fields_list,
             "selected_fields": self.selected_fields_list,
@@ -69,6 +71,9 @@ class Game_info():
             "winnings_screen": self.winnings_screen,
             "budget_bar": self.budget_bar,
             "tabel": self.tabel,
+            "wheel" : self.wheel,
+            "cursor_chip" : self.cursor_chip,
+            "info_fields": self.info_fields_list,
         }
 
         if self.budget_bar:

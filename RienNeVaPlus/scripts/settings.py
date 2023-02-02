@@ -9,11 +9,11 @@ class Settings():
         self.field_x, self.field_y = 100, 100
         self.bg_color = (90, 67, 220)
         self.bg_surf = pygame.image.load(
-            "RienNeVaPlus/images/bg_green_felt.png")
+            "RienNeVaPlus/images/bg_green_felt.png").convert_alpha()
         self.bg_rect = self.bg_surf.get_rect()
 
         self.br_surf = pygame.image.load(
-            "RienNeVaPlus/images/wood_panel_short.png")
+            "RienNeVaPlus/images/wood_panel_short.bmp").convert_alpha()
         # size = self.bg_rect.w, self.bg_rect.h
         # self.br_surf = pygame.transform.scale(self.br_surf, size)
         self.br_rect = self.br_surf.get_rect(bottomright=self.screen_size)
@@ -48,9 +48,9 @@ class Settings():
 
         self.chip_size = [115, 115]
         self.chip_image = pygame.image.load(
-            "RienNeVaPlus/images/chip_greyed.png")
+            "RienNeVaPlus/images/chip_greyed.png").convert_alpha()
         self.chip_overlay_image = pygame.image.load(
-            "RienNeVaPlus/images/chip_overlay.png")
+            "RienNeVaPlus/images/chip_overlay.png").convert_alpha()
         self.chip_color_dict = {
             'BLUE': (50, 50, 255),
             'RED': (200, 50, 50),

@@ -8,8 +8,8 @@ from game_info import Game_info
 
 def run():
     pygame.init()
+    screen = pygame.display.set_mode((1280,1024), vsync = 1)
     settings = Settings()
-    screen = pygame.display.set_mode(settings.screen_size)
     pygame.display.set_caption("Rien Ne Va Plus")
     pygame.display.set_icon(settings.bg_surf)
 

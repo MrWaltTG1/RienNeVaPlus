@@ -38,6 +38,7 @@ class Roulette():
 
         self.center_compartments()
         self.center_pole()
+        self.gi.wheel = self
 
     def find_coords(self, angle, radius="medium"):
         center = self.settings.wheel_center
@@ -186,8 +187,8 @@ class Roulette():
                 pos = self.get_msg_pos(self.coords_list[i])
                 text[0][1].center = pos
 
-            if self.ball:
-                self.ball.update()
+        if self.ball:
+            self.ball.update()
 
     def center_compartments(self):
         outer_circle = self.settings.wheel_radius_big+39
@@ -335,30 +336,35 @@ class Ball():
         return angle
 
     def update(self):
-
-        if self.drop:
-            self.angle = min(self.wheel.angles_list,
-                             key=lambda x: abs(x-self.angle))
-            index = self.wheel.angles_list.index(self.angle)
-            if self.center != self.wheel.center_points_list[index]:
-                x = (self.center[0] + self.wheel.center_points_list[index][0]) / 2
-                y = (self.center[1] + self.wheel.center_points_list[index][1]) / 2
-                if abs(x - self.center[0]) < 1:
-                    x = self.wheel.center_points_list[index][0]
-                if abs(y - self.center[1]) < 1:
-                    y = self.wheel.center_points_list[index][1]
-                self.center = x,y
+        if self.wheel.spinning:
+            if self.drop:
+                self.angle = min(self.wheel.angles_list,
+                                key=lambda x: abs(x-self.angle))
+                index = self.wheel.angles_list.index(self.angle)
+                if self.center != self.wheel.center_points_list[index]:
+                    x = (self.center[0] + self.wheel.center_points_list[index][0]) / 2
+                    y = (self.center[1] + self.wheel.center_points_list[index][1]) / 2
+                    if abs(x - self.center[0]) < 1:
+                        x = self.wheel.center_points_list[index][0]
+                    if abs(y - self.center[1]) < 1:
+                        y = self.wheel.center_points_list[index][1]
+                    self.center = x,y
+                self.ticks_left = self.wheel.end_tick - pygame.time.get_ticks()
+                if self.ticks_left <= 100:
+                    self.gi.outcome = pb.wheel[index]
+                    
+            else:
+                self.angle = self.get_angle(self.center)
+                self.angle = self.rotate(self.angle)
+                self.radius = self.update_radius(self.radius)
+                self.center = self.wheel.find_coords(self.angle-180, self.radius)
+            self.rect = self.image.get_rect(center=self.center)
+        elif self.drop:
             self.ticks_left = self.wheel.end_tick - pygame.time.get_ticks()
-            if self.ticks_left <= 0:
-                self.gi.outcome = pb.wheel[index]
-                self.wheel.ps.create_winnings_screen()
-                print(self.gi.outcome)
-        else:
-            self.angle = self.get_angle(self.center)
-            self.angle = self.rotate(self.angle)
-            self.radius = self.update_radius(self.radius)
-            self.center = self.wheel.find_coords(self.angle-180, self.radius)
-        self.rect = self.image.get_rect(center=self.center)
+            if self.ticks_left <= -500:
+                if not self.gi.winnings_screen:
+                    self.wheel.ps.create_winnings_screen()
+                    self.drop = False
 
     def blitme(self, screen):
         screen.blit(self.image, self.rect)
