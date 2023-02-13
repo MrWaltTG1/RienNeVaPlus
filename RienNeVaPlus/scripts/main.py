@@ -8,7 +8,7 @@ from game_info import Game_info
 
 def run():
     pygame.init()
-    screen = pygame.display.set_mode((1280,1024), vsync = 1)
+    screen = pygame.display.set_mode((1280,1024))
     settings = Settings()
     pygame.display.set_caption("Rien Ne Va Plus")
     pygame.display.set_icon(settings.bg_surf)
@@ -27,7 +27,7 @@ def run():
         if game_info.reset == True:
             game_info = Game_info(screen, settings)
             game_info.main_menu.create_self()
-        clockobject.tick(60)
+        clockobject.tick(120)
         
         game_info.update()
         
