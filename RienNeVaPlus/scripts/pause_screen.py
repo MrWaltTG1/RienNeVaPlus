@@ -1,8 +1,8 @@
-import pygame
-from settings import Settings
 import game_functions as gf
-from play_table import Single_field
 import possible_bets as pb
+import pygame
+from play_table import Single_field
+from settings import Settings
 
 
 class Pause_screen():
@@ -24,6 +24,7 @@ class Pause_screen():
             self.gi.returns = returns
             if returns > 1:
                 self.gi.personal_budget += returns
+                self.gi.total_returns += returns
 
             self.update_fields()
             self.create_field()
@@ -41,19 +42,31 @@ class Pause_screen():
                               (self.c_rect.centerx, self.c_rect.top+80))
             self.text_creator("Click to go back to the menu.",
                               self.c_rect.center)
+            self.text_creator("Your total winnings were: " + str(
+                self.gi.total_returns), (self.c_rect.centerx, self.c_rect.top+170))
             self.field = None
 
     def create_return_image(self):
+        """Creates the text at the bottom of the field showing the money won"""
         font_color = self.settings.color_dict["offwhite"]
         if self.gi.returns > 0:
             msg = "€" + "{:,.2f}".format(self.gi.returns)
         else:
             msg = "Nothing"
-
-        self.text_creator(msg,
-                          (self.field.rect.centerx, self.field.rect.bottom-30), font_color)
+        if self.field:
+            self.text_creator(msg,
+                              (self.field.rect.centerx, self.field.rect.bottom-30), font_color)
+            if self.gi.outcome in pb.impair:
+                msg = "IMPAIR"
+            elif self.gi.outcome in pb.pair:
+                msg = "PAIR"
+            else:
+                msg = ""
+            self.text_creator(msg,
+                              (self.field.rect.centerx, self.field.rect.top+30), font_color)
 
     def create_field(self):
+        """Creates the giant field showing which number has been rolled on"""
         size = self.settings.single_field_size
         number = self.gi.outcome
         if number in pb.noir:
@@ -106,6 +119,6 @@ class Pause_screen():
 
         if self.field:
             self.field.blitme(screen)
-            
+
         for text in self.text_list:
             screen.blit(text[0], text[1])
