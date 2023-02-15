@@ -21,7 +21,7 @@ def update_screen(screen, settings: Settings, main_menu: Main_menu, play_screen:
         main_menu.blitme()
     if play_screen.active and not game_info.current_stage == 0:
         play_screen.blitme()
-        screen.blit(settings.br_surf, settings.br_rect)
+        
 
     for type, element_list in game_info.elements_dict.items():
 
@@ -48,7 +48,7 @@ def update_screen(screen, settings: Settings, main_menu: Main_menu, play_screen:
         elif type == "previous_fields":
             for field in element_list:
                 field.blitme(screen)
-        elif type == "cursor_chip":
+        elif type == "cursor_chip" or type == "hover_chip":
             if element_list:
                 element_list.draw(screen)
     if game_info.game_over:
@@ -346,7 +346,7 @@ def create_info_field(settings, game_info, size=(0, 0), msg=None, color=None, id
         color = (255, 255, 255)
     if chip:
         msg = "€" + "{:,}".format(chip.price)
-        size = [len(msg) * 15, chip.rect.h / 2]
+        size = [len(msg) * 15, 30]
 
     new_info_field = Info_field(settings, size, color, msg, id, chip)
     game_info.info_fields_list.add(new_info_field)
@@ -458,6 +458,10 @@ def draw_circle(screen, color, pos, radius, width=0):
             pos[1]), radius-width+1, color)
         gfxdraw.aacircle(screen, int(pos[0]), int(pos[1]), radius-1, color)
 
+def draw_rect_alpha(surface, color, rect):
+    shape_surf = pygame.Surface(pygame.Rect(rect).size, pygame.SRCALPHA)
+    pygame.draw.rect(shape_surf, color, shape_surf.get_rect())
+    surface.blit(shape_surf, rect)
 
 def calculate_legend_chips(budget: int):
     """Returns a dict of the amount of chips to put in the legend"""

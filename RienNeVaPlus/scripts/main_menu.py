@@ -77,11 +77,11 @@ class Main_menu():
 
 
     def create_start_button(self):
-        button_pos = (self.settings.screen_size[0] / 2, self.settings.screen_size[1] /1.5)
-        button_size = (400,200)
+        button_pos = (self.settings.screen_size[0] / 2, self.settings.screen_size[1] /1.9)
+        button_size = (300,100)
 
         new_button = Button(self.settings, self.gi, button_pos,
-                            button_size, msg="START", image="start")
+                            button_size, msg="START")
         self.button_list.append(new_button)
 
     def create_self(self):
@@ -102,7 +102,7 @@ class Main_menu():
             3: "€100"
         }
         for i, x in enumerate(range(start_x, end_x, step_x)):
-            new_button = Button(self.settings, self.gi, (x, y), size, msg=text_dict[i], image="start")
+            new_button = Button(self.settings, self.gi, (x, y), size, msg=text_dict[i])
             self.button_list.append(new_button)
             if i == 3:
                 break

@@ -60,9 +60,11 @@ class Chip(pygame.sprite.Sprite):
 
         length = len(self.field_list)
         for field in self.field_list:
-            if not isinstance(field, Single_field) or not isinstance(field, Field_zero):
+            if not isinstance(field, Single_field) and not isinstance(field, Field_zero):
                 length -= 1
                 break
+        if length == 13:
+            length = 12
                 
         if length == 1:
             price_multiplier = 35

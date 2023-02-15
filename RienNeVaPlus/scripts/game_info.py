@@ -12,6 +12,7 @@ class Game_info():
         self.current_stage = 0
         self.personal_budget = 0
         self.returns = 0
+        self.total_returns = 0
         self.expected_winnings = 0
         self.previous_rolled_numbers_list = [-1, -1, -1, -1, -1]
 
@@ -29,6 +30,7 @@ class Game_info():
 
         self.all_chips_group_list = []
         self.cursor_chip = None
+        self.hover_chip = None
         self.placed_chips_list = []
         self.placed_chips_undo_list = []
         self.tabel = None
@@ -72,6 +74,7 @@ class Game_info():
             "budget_bar": self.budget_bar,
             "tabel": self.tabel,
             "wheel" : self.wheel,
+            "hover_chip" : self.hover_chip,
             "cursor_chip" : self.cursor_chip,
             "info_fields": self.info_fields_list,
         }
@@ -89,11 +92,11 @@ class Game_info():
         if self.all_chips_group_list:
             # Index 0 is the chip group that is clickable
             """This doesnt change"""
-            # Index 1 is the chip that is following the cursor
+            # Index 2 is the chip that is following the cursor
             if self.all_chips_group_list[2] != self.cursor_chip:
                 self.all_chips_group_list[2] = self.cursor_chip
 
-            # Index 2 is placed chips group
+            # Index 1 is placed chips group
             for chip in self.all_chips_group_list[1]:
                 if not chip in self.placed_chips_list:
                     self.all_chips_group_list[1].remove(chip)

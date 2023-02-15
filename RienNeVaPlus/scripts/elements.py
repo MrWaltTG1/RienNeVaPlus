@@ -12,11 +12,11 @@ class Button():
         self.image = image
         self.gi = game_info
         self.pos = pos
-
         self.button_color = settings.button_color
         self.rect = pygame.Rect((0, 0), size)
         self.rect.center = pos
         self.bg = False
+        self.bg_surf = None
         if image:
             image_surf, image_rect = self.prep_image(image)
             self.image_list.append([image_surf, image_rect])
@@ -42,6 +42,7 @@ class Button():
             self.msg, msg_image_rect, font_type, font_size)
 
         return [msg_image_shad, msg_image], [msg_image_shad_rect, msg_image_rect]
+        
 
     def prep_image(self, image: str, size=None):
         self.image_msg = image
@@ -54,11 +55,6 @@ class Button():
             "back": "RienNeVaPlus/images/buttons/back_white.png",
             "start": "RienNeVaPlus/images/Button.png",
         }
-        if image == "strt":
-            self.og_bg_surf = pygame.image.load("RienNeVaPlus/images/buttons/button_wood_bg.png")
-            self.bg_surf = pygame.transform.smoothscale(self.og_bg_surf, size)       
-        else:
-            self.bg_surf = None
         self.image_surf = pygame.image.load(self.text_dict[image])
         self.image_surf = pygame.transform.smoothscale(self.image_surf, size)
         if image == "undo":
@@ -75,8 +71,6 @@ class Button():
         
     def resize(self, size):
         self.rect.size = size
-        if self.bg_surf:
-            self.bg_surf = pygame.transform.smoothscale(self.og_bg_surf, size)
         for i, (surf, rect) in enumerate(self.image_list):
             surf = pygame.transform.smoothscale(self.image_surf, size)
             rect = surf.get_rect(center = self.pos)
@@ -85,26 +79,42 @@ class Button():
             
     def update(self):
         if self.image == "redo":
-            if not self.gi.placed_chips_undo_list:
-                self.resize((70, 70))
-                self.image_surf.set_alpha(180)
+            if self.gi.placed_chips_undo_list:
+                if self.rect.size == (70, 70):
+                    self.resize((90, 90))
+                    self.image_surf.set_alpha(180)
             else:
-                self.resize(self.size)
-                self.image_surf.set_alpha(255)
+                if self.rect.size == (90, 90):
+                    self.resize(self.size)
+                    self.image_surf.set_alpha(255)
         elif self.image == "undo" or self.image == "cross":
-            if not self.gi.placed_chips_list:
-                self.resize((70, 70))
-                self.image_surf.set_alpha(180)
+            if self.gi.placed_chips_list:
+                if self.rect.size == (70, 70):
+                    self.resize((90, 90))
+                    self.image_surf.set_alpha(180)
             else:
-                self.resize(self.size)
-                self.image_surf.set_alpha(255)
+                if self.rect.size == (90, 90):
+                    self.resize(self.size)
+                    self.image_surf.set_alpha(255)
+        elif not self.image:
+            x, y = pygame.mouse.get_pos()
+            if self.rect.collidepoint(x, y):
+                self.alpha = 150
+            else:
+                self.alpha = 255
+                    
+        if self.rect.center != self.pos:
+            self.reposition(self.pos)
 
     def blitme(self, screen):
         if self.bg_surf:
             screen.blit(self.bg_surf, self.image_list[-1][1])
             
-        for image in self.image_list:
-            screen.blit(image[0], image[1])
+        if not self.image:
+            gf.draw_rect_alpha(screen, (0,0,0, self.alpha), self.rect)
+        
+        for surf, rect in self.image_list:
+            screen.blit(surf, rect)
 
 
 
@@ -222,6 +232,8 @@ class Info_field():
         # Resize the info field with the text rect within
         w, h = self.msg_image_rect.size
         self.end_rect.size = w + 10, h
+        if self.end_rect.width < 40:
+            self.end_rect.width = 40
 
         # Calculate if the box needs to be resized
         x, y = 0, 0
@@ -235,6 +247,8 @@ class Info_field():
 
         # Resize the info field
         self.start_rect = self.start_rect.inflate(x, y)
+        while self.end_rect.right > self.settings.screen_size[0]:
+            self.end_rect.left -= 1
 
         # Make sure the rect doesnt exceed the size
         if x > 0:
@@ -260,6 +274,11 @@ class Info_field():
             self.start_rect.topleft = self.chip.rect.midtop
             self.end_rect.topleft = self.chip.rect.midtop
             self.msg_image_rect.centery = self.start_rect.centery
+            while self.end_rect.right > self.settings.screen_size[0]:
+                self.end_rect.left -= 1
+                self.start_rect.left -= 1
+            
+            
 
     def blitme(self, screen):
         try:
@@ -291,6 +310,7 @@ class Budget_bar():
 
     def prep_msg(self, msg: str, pos, font_color=None):
         """Returns an image and a rect of a given message plus its shadow"""
+        self.msg = msg
         font_type = self.settings.font_type
         font_size = int(self.settings.font_size / 1.5)
         if not font_color:

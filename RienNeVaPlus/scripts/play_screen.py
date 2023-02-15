@@ -9,6 +9,7 @@ from settings import Settings
 from number_tabel import Tabel
 from pause_screen import Pause_screen
 
+
 class Play_screen():
     """Creates the play screen"""
 
@@ -25,6 +26,7 @@ class Play_screen():
 
         self.chip_group = []
         self.cursor_chip = None
+        self.hovered_chip = None
         self.chip_group_placed = pygame.sprite.Group()
         self.chip_all_groups_list = [self.chip_group,
                                      self.cursor_chip, self.chip_group_placed]
@@ -33,21 +35,26 @@ class Play_screen():
 
         self.board = Play_field(self.screen, self.settings, self.gi)
         self.roulette_wheel = Roulette(self.settings, self.gi, self)
-        self.create_chips()
+        self.create_chips(True)
         self.create_budget_text(self.budget, self.settings.bg_rect.bottomright)
         self.create_placement_buttons()
         self.create_back_button()
         Budget_bar(self.settings, self.gi)
         Tabel(self.settings, self.gi)
+        self.br_surf = self.settings.br_surf
+        self.br_rect = self.br_surf.get_rect(
+            topright=self.settings.screen_size)
+        self.budget = self.gi.personal_budget
         self.active = True
 
     def create_placement_buttons(self):
         text_list = ["undo", "cross", "redo"]
-        size = [80, 80]
-        y = 680
-        x = range (1000, 1200, int(size[0]*1.1))
+        size = [70, 70]
+        y = self.settings.bg_rect.bottom + 30
+        x = range(1000, 1200, int(size[0]*1.1))
         for i, text in enumerate(text_list):
-            new_button = Button(self.settings, self.gi, (x[i], y), size, image=text)
+            new_button = Button(self.settings, self.gi,
+                                (x[i], y), size, image=text)
             self.button_list.append(new_button)
 
     def create_back_button(self):
@@ -57,22 +64,28 @@ class Play_screen():
         new_button = Button(self.settings, self.gi, pos, size, image=text)
         self.button_list.append(new_button)
 
-    def create_chips(self):
+    def create_chips(self, do_anim=False):
         """Function to create chips legend"""
 
         if self.board:
             self.chip_group.clear()
             size = self.settings.bg_rect.w / 1.8, self.settings.bg_rect.h / 4
-            legend_rect = pygame.Rect((0, 0), size)
-            legend_rect.bottomright = self.settings.bg_rect.bottomright
+            self.legend_rect = pygame.Rect((0, 0), size)
+            if do_anim:
+                self.legend_rect.topright = self.settings.bg_rect.bottomright
+                self.legend_rect.top += 216
+                self.do_anim = True
+            else:
+                self.legend_rect.bottomright = self.settings.bg_rect.bottomright
+                self.do_anim = False
 
             chip_dict = gf.calculate_legend_chips(self.gi.personal_budget)
 
             name_list = ["thousand", "five hundred",
                          "hundred", "twentyfive", "five", "one"]
-            slot_x_offset = legend_rect.w / 6.5
+            slot_x_offset = self.legend_rect.w / 6.5
             name_x_list = []
-            x = legend_rect.left
+            x = self.legend_rect.left
             for name in name_list:
                 x += slot_x_offset
                 name_x_list.append([name, x])
@@ -81,7 +94,7 @@ class Play_screen():
 
             for name, x in name_x_list:
                 i = chip_dict[name]
-                y = legend_rect.top + 5
+                y = self.legend_rect.top + 5
                 j = -(name_list.index(name)+1)
                 while i > 0:
                     new_chip = Chip(
@@ -91,11 +104,31 @@ class Play_screen():
                     y += 50
                     i -= 1
 
+    def opening_anim(self):
+        if self.br_rect.bottomright != self.settings.screen_size:
+            self.br_rect.bottom -= 14
+            if self.br_rect.bottom < self.settings.screen_size[1]:
+                self.br_rect.bottom = self.settings.screen_size[1]
+            text_list = ["undo", "cross", "redo"]
+            for button in self.button_list:
+                if button.image in text_list:
+                    y = button.rect.centery - 14
+                    button.pos = (button.rect.centerx, y)
+
+        if self.legend_rect.top > self.br_rect.top + 140:
+            self.legend_rect.top -= 14
+            for chip in self.chip_group:
+                chip.rect.top -= 14
+        else:
+            self.legend_rect.top = self.br_rect.top
+            self.do_anim = False
+
     def update(self):
         """Function to update the board"""
         if self.active:
-
             self.update_chips()
+            if self.do_anim:
+                self.opening_anim()
 
             try:
                 self.chip_all_groups_list = [self.chip_group,
@@ -146,12 +179,16 @@ class Play_screen():
         x, y = pygame.mouse.get_pos()
 
         """For loop to update chips"""
-        for chip in self.chip_group:
+        for chip in reversed(self.chip_group):
             if pygame.Rect.collidepoint(chip.rect, x, y):
-                self.hovered_chip = chip
+                if not self.hovered_chip or self.hovered_chip.rect.center != chip.rect.center:
+                    self.info_field_list.clear()
+                    self.gi.info_fields_list.clear()
+                    self.hovered_chip = Chip(
+                        settings=self.settings, color=chip.color, resize_multiplier=1.1, shadow=True)
+                    self.hovered_chip.rect.center = chip.rect.center
+                    self.gi.hover_chip = self.hovered_chip
                 break
-            else:
-                self.hovered_chip = None
 
         """Create an information box showing the hovered chips price"""
         if self.hovered_chip:
@@ -159,6 +196,10 @@ class Play_screen():
                 new_info_field = gf.create_info_field(
                     self.settings, self.gi, chip=self.hovered_chip, id=1)
                 self.info_field_list.append(new_info_field)
+
+            if not pygame.Rect.collidepoint(self.hovered_chip.rect, x, y):
+                self.hovered_chip = None
+                self.gi.hover_chip = None
 
         elif self.info_field_list:
             if self.info_field_list[-1].id == 1:
@@ -168,6 +209,8 @@ class Play_screen():
         # This is the chip that follows the cursor
         c_chip = self.gi.cursor_chip
         if c_chip:
+            self.hovered_chip = None
+            self.gi.hover_chip = None
             if c_chip.rect.center != (x, y):
                 offset_x = c_chip.rect.centerx - x
                 if offset_x != 0:
@@ -242,6 +285,9 @@ class Play_screen():
             self.board.blitme()
         for msg_image, msg_image_rect in self.image_list:
             self.screen.blit(msg_image, msg_image_rect)
+
+        self.screen.blit(self.br_surf, self.br_rect)
+
         if self.roulette_wheel:
             pass
             # self.roulette_wheel.blitme(self.screen)

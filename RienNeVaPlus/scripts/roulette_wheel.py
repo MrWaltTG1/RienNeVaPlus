@@ -149,19 +149,22 @@ class Roulette():
         self.end_tick = self.start_tick + self.spinning_time
         self.ticks_left = self.spinning_time
         x, y = pygame.mouse.get_pos()
-        self.ball = Ball(self.settings, self.gi, self, (x,y))
+        self.ball = Ball(self.settings, self.gi, self, (x, y))
 
     def update_spin(self):
 
         subt = 200
-        speed = self.settings.base_spinning_speed * self.ticks_left / subt
+        
         self.ticks_left = self.end_tick - pygame.time.get_ticks()
+        if self.ticks_left < 2000:
+            subt = 250
         if self.ticks_left <= 0:
             self.spinning = False
+        speed = self.settings.base_spinning_speed * self.ticks_left / subt
         self.rotation += speed
         if self.rotation > 360:
             self.rotation -= 360
-            
+
         # Pole spin
         p_subt = 250
         p_speed = self.settings.base_spinning_speed * self.ticks_left / p_subt
@@ -209,28 +212,32 @@ class Roulette():
             self.bling_list.append((surf, rect.topleft))
             rotation += 90
             angle += angle_offset
-        
-        self.wood_circle = pygame.image.load("RienNeVaPlus/images/wood_circle.png")
-        self.wood_circle = pygame.transform.smoothscale(self.wood_circle, (outer_circle*2, outer_circle*2))
-        self.wood_circle_rect = self.wood_circle.get_rect(center=self.settings.wheel_center)
-        
+
+        self.wood_circle = pygame.image.load(
+            "RienNeVaPlus/images/wood_circle.png")
+        self.wood_circle = pygame.transform.smoothscale(
+            self.wood_circle, (outer_circle*2, outer_circle*2))
+        self.wood_circle_rect = self.wood_circle.get_rect(
+            center=self.settings.wheel_center)
+
     def center_pole(self):
         self.pole_list.clear()
         radius = int(self.settings.wheel_radius_small / 2)
         angle_offset = 360 / 4
-        i=4
-        while i>0:
+        i = 4
+        while i > 0:
             # line
-            x, y = self.find_coords(self.p_rotation, radius) # type: ignore       
+            x, y = self.find_coords(self.p_rotation, radius)  # type: ignore
             self.pole_list.append((x, y))
             self.p_rotation += angle_offset
-            i-=1
+            i -= 1
 
     def blitme(self, screen):
         # Center of the roulette wheel
         center = self.settings.wheel_center
         screen.blit(self.wood_circle, self.wood_circle_rect)
-        gf.draw_circle(screen, self.settings.color_dict["black"], center, self.settings.wheel_radius_small-8, 3)
+        gf.draw_circle(
+            screen, self.settings.color_dict["black"], center, self.settings.wheel_radius_small-8, 3)
         gf.draw_circle(
             screen, self.settings.color_dict["black"], center, self.settings.wheel_radius_big+40, 3)
         gf.draw_circle(
@@ -257,7 +264,7 @@ class Roulette():
 
         if self.ball:
             self.ball.blitme(screen)
-            
+
         # Draw the center pole
         for point in self.pole_list:
             pygame.draw.line(
@@ -265,11 +272,13 @@ class Roulette():
             gf.draw_circle(screen, self.settings.color_dict["black"], point, 9)
             pygame.draw.line(
                 screen, self.settings.color_dict["yellow"], center, point, 5)
-            gf.draw_circle(screen, self.settings.color_dict["yellow"], point, 8)
-            
+            gf.draw_circle(
+                screen, self.settings.color_dict["yellow"], point, 8)
+
         gf.draw_circle(screen, self.settings.color_dict["black"], center, 15)
         gf.draw_circle(screen, self.settings.color_dict["yellow"], center, 14)
-        gf.draw_circle(screen, self.settings.color_dict["yellow_dark"], center, 7, 4)
+        gf.draw_circle(
+            screen, self.settings.color_dict["yellow_dark"], center, 7, 4)
 
         # for point in self.center_points_list:
         #     pygame.draw.circle(screen, (0,0,0), point, 4)
@@ -278,15 +287,14 @@ class Roulette():
         # pygame.draw.circle(screen, (0,0,255), center, self.settings.wheel_radius_big)
 
 
-
 class Ball():
-    def __init__(self, settings, game_info, wheel: Roulette, pos=(0,0)) -> None:
+    def __init__(self, settings, game_info, wheel: Roulette, pos=(0, 0)) -> None:
         self.settings, self.gi = settings, game_info
         self.wheel = wheel
         self.radius = settings.wheel_radius_big + 20
         self.center = pos
         self.image = pygame.image.load("RienNeVaPlus/images/ball.png")
-        self.image = pygame.transform.smoothscale(self.image, (17,17))
+        self.image = pygame.transform.smoothscale(self.image, (17, 17))
         self.rect = self.image.get_rect(center=self.center)
         self.drop = False
         self.get_angle(self.center)
@@ -298,74 +306,91 @@ class Ball():
         angle = atan2(y, x)
         angle = degrees(angle)
         angle += 90
+        
+        if angle > 360:
+            angle -= 360
+        elif angle < 0:
+            angle += 360
 
         return angle
 
     def update_radius(self, radius):
         if not self.drop:
-            if self.ticks_left > 5000:
-                high = True
-            else:
+            if self.radius < self.settings.wheel_radius or self.ticks_left < 2000:
                 high = False
+            else:
+                high = True
 
             if high:
                 radius += randint(-4, 4)
                 if radius < self.settings.wheel_radius_big:
                     radius += 4
+                elif radius > self.settings.wheel_radius_big + 30:
+                    radius -= 4
             else:
+                radius += randint(-3, 3)
                 if radius > self.settings.wheel_radius_big:
-                    radius -= 8
-                elif radius > self.settings.wheel_radius:
+                    radius -= 4
+                elif radius > self.settings.wheel_radius-15:
                     radius -= 2
-                else:
-                    radius += randint(-8, 8)
+                elif radius < self.settings.wheel_radius_small+5:
+                    radius += 2
+                
 
         return radius
 
     def rotate(self, angle):
-        subt = 170
+        subt = 200
         self.ticks_left = self.wheel.end_tick - pygame.time.get_ticks()
-        if self.ticks_left > randint(2500, 3500):
-            subt = 170
+        if self.ticks_left > randint(500, 900):
+            subt = 160
         else:
             self.drop = True
-            subt = 200
-        speed = self.settings.base_spinning_speed * self.ticks_left / subt
-        angle += speed
+        speed = (self.settings.base_spinning_speed+0.1) * self.ticks_left / subt
+        if not self.drop:
+            angle -= speed
+        else:
+            angle += speed
 
         return angle
 
     def update(self):
         if self.wheel.spinning:
             if self.drop:
+                self.angle = self.get_angle(self.center)
+                # Get the angle of the wheelfield closest to the current angle
                 self.angle = min(self.wheel.angles_list,
-                                key=lambda x: abs(x-self.angle))
+                                 key=lambda x: abs(x-self.angle))
                 index = self.wheel.angles_list.index(self.angle)
                 if self.center != self.wheel.center_points_list[index]:
-                    x = (self.center[0] + self.wheel.center_points_list[index][0]) / 2
-                    y = (self.center[1] + self.wheel.center_points_list[index][1]) / 2
-                    if abs(x - self.center[0]) < 1:
+                    x = ((self.center[0]*6) +
+                         self.wheel.center_points_list[index][0]) / 7
+                    y = ((self.center[1]*6) +
+                         self.wheel.center_points_list[index][1]) / 7
+                    if abs(x - self.center[0]) < 0.1:
                         x = self.wheel.center_points_list[index][0]
-                    if abs(y - self.center[1]) < 1:
+                    if abs(y - self.center[1]) < 0.1:
                         y = self.wheel.center_points_list[index][1]
-                    self.center = x,y
+                    self.center = x, y
                 self.ticks_left = self.wheel.end_tick - pygame.time.get_ticks()
                 if self.ticks_left <= 100:
                     self.gi.outcome = pb.wheel[index]
-                    
+
             else:
                 self.angle = self.get_angle(self.center)
                 self.angle = self.rotate(self.angle)
                 self.radius = self.update_radius(self.radius)
-                self.center = self.wheel.find_coords(self.angle-180, self.radius)
+                self.center = self.wheel.find_coords(
+                    self.angle-180, self.radius)
             self.rect = self.image.get_rect(center=self.center)
         elif self.drop:
             self.ticks_left = self.wheel.end_tick - pygame.time.get_ticks()
-            if self.ticks_left <= -500:
+            if self.ticks_left <= -800:
                 if not self.gi.winnings_screen:
                     self.wheel.ps.create_winnings_screen()
                     self.drop = False
 
     def blitme(self, screen):
         screen.blit(self.image, self.rect)
-        gf.draw_circle(screen, self.settings.color_dict["offwhite"], self.center, 6)
+        gf.draw_circle(
+            screen, self.settings.color_dict["offwhite"], self.center, 6)

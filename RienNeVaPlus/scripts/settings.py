@@ -5,7 +5,7 @@ class Settings():
     def __init__(self) -> None:
         self.debug = False
 
-        self.screen_size = [1280, 1024]
+        self.screen_size = (1280, 1024)
         self.field_x, self.field_y = 100, 100
         self.bg_color = (90, 67, 220)
         self.bg_surf = pygame.image.load(
@@ -14,9 +14,7 @@ class Settings():
 
         self.br_surf = pygame.image.load(
             "RienNeVaPlus/images/wood_panel_short.bmp").convert_alpha()
-        # size = self.bg_rect.w, self.bg_rect.h
-        # self.br_surf = pygame.transform.scale(self.br_surf, size)
-        self.br_rect = self.br_surf.get_rect(bottomright=self.screen_size)
+        self.anim_tick_duration = 1000 # ticks
 
         """PLAY TABLE SETTINGS"""
         self.single_field_width = 50
@@ -74,9 +72,9 @@ class Settings():
         self.start_button_size = 500, 400
 
         # Roulette wheel
-        self.spinning_time_min = 5000
-        self.spinning_time_max = 10000
-        self.base_spinning_speed = 0.5
+        self.spinning_time_min = 7000
+        self.spinning_time_max = 11000
+        self.base_spinning_speed = 0.2
 
         self.wheel_radius = 130
         self.wheel_radius_small = self.wheel_radius - 50

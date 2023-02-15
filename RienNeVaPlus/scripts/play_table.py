@@ -206,7 +206,7 @@ class Single_field(pygame.sprite.Sprite):
         if hasattr(self, "image"):
             screen.blit(self.image, self.rect)
 
-
+        color = self.settings.color_dict["offwhite"]      
         if self.selected:
             if self.alpha > 180:
                 self.glow = -0.7
@@ -238,7 +238,7 @@ class Single_field(pygame.sprite.Sprite):
 
         # Draw the outlining box
         pygame.draw.rect(
-            screen, self.settings.color_dict["offwhite"],
+            screen, color,
             self.rect, width=2)
 
 

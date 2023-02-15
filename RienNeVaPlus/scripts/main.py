@@ -5,10 +5,9 @@ from settings import Settings
 from game_info import Game_info
 
 
-
 def run():
     pygame.init()
-    screen = pygame.display.set_mode((1280,1024))
+    screen = pygame.display.set_mode((1280, 1024))
     settings = Settings()
     pygame.display.set_caption("Rien Ne Va Plus")
     pygame.display.set_icon(settings.bg_surf)
@@ -23,14 +22,14 @@ def run():
     # As long as active is true the game will continue
     active = True
     while active:
-        
+
         if game_info.reset == True:
             game_info = Game_info(screen, settings)
             game_info.main_menu.create_self()
-        clockobject.tick(120)
-        
+        clockobject.tick(60)
+
         game_info.update()
-        
+
         if game_info.current_stage == 0:
             game_info.main_menu.update()
         elif game_info.current_stage > 0:
@@ -42,15 +41,14 @@ def run():
 
             if game_info.winnings_screen:
                 game_info.winnings_screen.update()
-        
+
         for button in game_info.elements_dict["buttons"]:
             button.update()
-        
+
         gf.check_events(screen, settings, game_info.main_menu,
                         game_info.play_screen, game_info)
         gf.update_screen(screen, settings, game_info.main_menu,
                          game_info.play_screen, game_info)
-        
 
 
 run()
