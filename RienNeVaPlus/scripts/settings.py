@@ -13,7 +13,7 @@ class Settings():
         self.bg_rect = self.bg_surf.get_rect()
 
         self.br_surf = pygame.image.load(
-            "RienNeVaPlus/images/wood_panel_short.bmp").convert_alpha()
+            "RienNeVaPlus/images/wood_panel_short.png").convert_alpha()
         self.anim_tick_duration = 1000 # ticks
 
         """PLAY TABLE SETTINGS"""

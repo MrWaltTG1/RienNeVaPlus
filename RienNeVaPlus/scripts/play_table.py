@@ -238,7 +238,7 @@ class Single_field(pygame.sprite.Sprite):
 
         # Draw the outlining box
         pygame.draw.rect(
-            screen, color,
+            screen, self.settings.color_dict["offwhite"],
             self.rect, width=2)
 
 
