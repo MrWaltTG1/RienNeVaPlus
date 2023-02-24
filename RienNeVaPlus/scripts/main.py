@@ -1,26 +1,54 @@
+import time
+import pygame
 import game_functions as gf
+from settings import Settings
+from game_info import Game_info
 
 
 def run():
-    # Runs the program
-    budget = gf.ask_budget()
-    spin = False
-    bet_list = []
-    while not spin:
-        bet = gf.ask_bet()
-        bet_list.append((bet))
-        bet_value = int(input("Enter how much you would like to bet: "))
-        budget -= bet_value
-        if input("Bet some more? y/n: ") == "n":
-            spin = True
+    pygame.init()
+    screen = pygame.display.set_mode((1280, 1024))
+    settings = Settings()
+    pygame.display.set_caption("Rien Ne Va Plus")
+    pygame.display.set_icon(settings.bg_surf)
 
-    spinned_number = gf.spin_wheel()
-    bet_multiplier_list = gf.wheel_math(spinned_number, bet_list)
-    if bet_multiplier_list:
-        for bet_multiplier in bet_multiplier_list:
-            budget += bet_value * bet_multiplier
-    print(budget)
-    spin = False
+    clockobject = pygame.time.Clock()
+    # Initialize the game objects
+    game_info = Game_info(screen, settings)
+
+    # Create the main menu
+    game_info.main_menu.create_self()
+
+    # As long as active is true the game will continue
+    active = True
+    while active:
+
+        if game_info.reset == True:
+            game_info = Game_info(screen, settings)
+            game_info.main_menu.create_self()
+        clockobject.tick(60)
+
+        game_info.update()
+
+        if game_info.current_stage == 0:
+            game_info.main_menu.update()
+        elif game_info.current_stage > 0:
+            if not game_info.play_screen.active:
+                game_info.play_screen.create_self()
+            game_info.play_screen.update()
+            if game_info.tabel:
+                game_info.tabel.update()
+
+            if game_info.winnings_screen:
+                game_info.winnings_screen.update()
+
+        for button in game_info.elements_dict["buttons"]:
+            button.update()
+
+        gf.check_events(screen, settings, game_info.main_menu,
+                        game_info.play_screen, game_info)
+        gf.update_screen(screen, settings, game_info.main_menu,
+                         game_info.play_screen, game_info)
 
 
 run()
